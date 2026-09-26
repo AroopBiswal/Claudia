@@ -46,13 +46,19 @@ export interface CreateOAuthRouterOptions {
   extraRedirectUris?: string[];
 }
 
-function sendHtml(res: Response, status: number, html: string): void {
+/**
+ * `formActionOrigin` must be the origin of an already-validated redirect_uri: browsers apply
+ * CSP form-action to the redirect that follows a form submission, so the approval page has to
+ * allow the client's callback origin or the post-Approve redirect is silently blocked.
+ */
+function sendHtml(res: Response, status: number, html: string, formActionOrigin?: string): void {
+  const formAction = formActionOrigin ? `'self' ${formActionOrigin}` : "'self'";
   res
     .status(status)
     .set('Content-Type', 'text/html; charset=utf-8')
     .set(
       'Content-Security-Policy',
-      "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'",
+      `default-src 'none'; style-src 'unsafe-inline'; form-action ${formAction}`,
     )
     .set('X-Frame-Options', 'DENY')
     .send(html);
@@ -311,6 +317,7 @@ export function createOAuthRouter(opts: CreateOAuthRouterOptions): Router {
           approveAction: `${publicUrl}/oauth/approve`,
           signedRequest,
         }),
+        new URL(redirectUri).origin,
       );
     })().catch(next);
   });

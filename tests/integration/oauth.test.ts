@@ -224,6 +224,23 @@ describe('OAuth authorization server (integration)', () => {
       expect(iss).toBe(publicUrl);
     });
 
+    it("lets the approval form's redirect reach the client's callback origin (CSP form-action)", async () => {
+      const authorizeUrl = new URL(`${publicUrl}/oauth/authorize`);
+      authorizeUrl.searchParams.set('client_id', clientId);
+      authorizeUrl.searchParams.set('redirect_uri', redirectUri);
+      authorizeUrl.searchParams.set('response_type', 'code');
+      authorizeUrl.searchParams.set('code_challenge', challenge);
+      authorizeUrl.searchParams.set('code_challenge_method', 'S256');
+      const res = await fetch(authorizeUrl, {
+        headers: { 'cf-access-jwt-assertion': await accessJwt() },
+      });
+      expect(res.status).toBe(200);
+      const csp = res.headers.get('content-security-policy') ?? '';
+      // Browsers enforce form-action on the redirect after submit, so the callback origin must be listed.
+      expect(csp).toContain(`form-action 'self' ${new URL(redirectUri).origin}`);
+      expect(csp).toContain("default-src 'none'");
+    });
+
     it('rejects authorize with no Access assertion at all (403)', async () => {
       const authorizeUrl = new URL(`${publicUrl}/oauth/authorize`);
       authorizeUrl.searchParams.set('client_id', clientId);
