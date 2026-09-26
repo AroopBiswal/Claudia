@@ -52,9 +52,27 @@ async function checkVault(vaultPath: string): Promise<{ path_ok: boolean; writab
   return { path_ok: pathOk, writable };
 }
 
+const PROBE_TIMEOUT_MS = 3000;
+
 /** Builds a cached (2s) health snapshot function for GET /health. */
 export function createHealth(ctx: ClaudiaContext, deps: HealthDeps): () => Promise<HealthReport> {
   let cached: { at: number; report: HealthReport } | null = null;
+  // macOS can hold a vault access indefinitely while a privacy permission is pending, and each held
+  // call occupies a libuv worker. Keep at most one probe in flight and answer within 3 seconds.
+  let inflight: Promise<{ path_ok: boolean; writable: boolean }> | null = null;
+  async function probeVault(): Promise<{ path_ok: boolean; writable: boolean }> {
+    inflight ??= checkVault(deps.vaultPath).finally(() => {
+      inflight = null;
+    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), PROBE_TIMEOUT_MS);
+      timer.unref?.();
+    });
+    const result = await Promise.race([inflight, timeout]);
+    if (timer) clearTimeout(timer);
+    return result ?? { path_ok: false, writable: false };
+  }
 
   return async function health(): Promise<HealthReport> {
     const now = ctx.clock.now().getTime();
@@ -62,7 +80,7 @@ export function createHealth(ctx: ClaudiaContext, deps: HealthDeps): () => Promi
       return cached.report;
     }
 
-    const vault = await checkVault(deps.vaultPath);
+    const vault = await probeVault();
     const stats = ctx.index.stats();
     const lastTick = ctx.state.getKv('scheduler:last_tick');
     const settingsWarnings = ctx.index.settings().warnings;

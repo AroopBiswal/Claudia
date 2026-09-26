@@ -271,7 +271,7 @@ create_config() {
 
   log "creating $CONFIG_FILE"
   mkdir -p "$CLAUDIA_HOME"
-  VAULT_PATH="$vault_path" TOPIC="$topic" OWNER_EMAIL_VALUE="$owner_email" "$NODE_BIN" -e '
+  CONFIG_FILE="$CONFIG_FILE" VAULT_PATH="$vault_path" TOPIC="$topic" OWNER_EMAIL_VALUE="$owner_email" "$NODE_BIN" -e '
     const fs = require("node:fs");
     const vaultPath = process.env.VAULT_PATH;
     const topic = process.env.TOPIC || null;
@@ -286,7 +286,7 @@ create_config() {
       ntfy: { baseUrl: "http://127.0.0.1:8790", topic },
     };
     fs.writeFileSync(process.env.CONFIG_FILE, JSON.stringify(config, null, 2) + "\n", { mode: 0o600 });
-  ' CONFIG_FILE="$CONFIG_FILE"
+  '
   chmod 600 "$CONFIG_FILE"
 }
 
@@ -296,7 +296,7 @@ fill_missing_ntfy_topic() {
   [ -f "$NTFY_DIR/topic" ] && topic="$(cat "$NTFY_DIR/topic")"
   [ -n "$topic" ] || return 0
 
-  TOPIC="$topic" "$NODE_BIN" -e '
+  CONFIG_FILE="$CONFIG_FILE" TOPIC="$topic" "$NODE_BIN" -e '
     const fs = require("node:fs");
     const file = process.env.CONFIG_FILE;
     const config = JSON.parse(fs.readFileSync(file, "utf8"));
@@ -306,7 +306,7 @@ fill_missing_ntfy_topic() {
       fs.writeFileSync(file, JSON.stringify(config, null, 2) + "\n");
       console.log("[install] filled in ntfy.topic in " + file);
     }
-  ' CONFIG_FILE="$CONFIG_FILE"
+  '
 }
 
 # --- Step d: ntfy launchd agent ----------------------------------------------

@@ -78,6 +78,7 @@ export interface RunningService {
 }
 
 const INDEX_REBUILD_RETRY_MS = 60_000;
+const INITIAL_REBUILD_WAIT_MS = 5_000;
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -156,20 +157,42 @@ export async function startService(
     now: () => clock.now(),
   });
 
+  // The first rebuild is the first time the service touches the vault. Under launchd, macOS may
+  // hold that call until the owner grants access (docs/HUMAN_TODO.md 1), so it runs in the
+  // background with at most one attempt in flight, and the HTTP server starts regardless.
+  let stopped = false;
   let rebuildRetryTimer: ReturnType<typeof setTimeout> | null = null;
-  async function tryRebuildIndex(): Promise<void> {
-    try {
-      const result = await index.rebuild();
-      log(`index rebuilt: ${String(result.notes)} notes, ${String(result.items)} items`);
-    } catch (err) {
-      log(`index rebuild failed, will retry in 60s: ${errorMessage(err)}`);
-      rebuildRetryTimer = setTimeout(() => {
-        void tryRebuildIndex();
-      }, INDEX_REBUILD_RETRY_MS);
-      rebuildRetryTimer.unref?.();
-    }
+  let rebuilding: Promise<void> | null = null;
+  let vaultReady = false;
+  let onVaultReady: () => void = () => {};
+  function startRebuild(): Promise<void> {
+    if (rebuilding) return rebuilding;
+    rebuilding = (async () => {
+      try {
+        const result = await index.rebuild();
+        log(`index rebuilt: ${String(result.notes)} notes, ${String(result.items)} items`);
+        if (!vaultReady) {
+          vaultReady = true;
+          onVaultReady();
+        }
+      } catch (err) {
+        log(`index rebuild failed, will retry in 60s: ${errorMessage(err)}`);
+        rebuildRetryTimer = setTimeout(() => {
+          void startRebuild();
+        }, INDEX_REBUILD_RETRY_MS);
+        rebuildRetryTimer.unref?.();
+      } finally {
+        rebuilding = null;
+      }
+    })();
+    return rebuilding;
   }
-  await tryRebuildIndex();
+  const initialRebuild = startRebuild();
+  await Promise.race([
+    initialRebuild,
+    new Promise<void>((resolve) => setTimeout(resolve, INITIAL_REBUILD_WAIT_MS).unref()),
+  ]);
+  if (!vaultReady) log('vault not readable yet; serving /health as degraded until it is');
 
   const writer: VaultWriter = createVaultWriter({
     vaultDir: config.vaultPath,
@@ -291,11 +314,16 @@ export async function startService(
     refresher.schedule();
   }
 
+  // Watch the vault only once it is readable (see startRebuild).
   let watcher: Watcher | null = null;
-  if (opts.watch !== false) {
-    watcher = createWatcher({ vaultDir: config.vaultPath, onChanges, onRescan });
-    watcher.start();
-  }
+  onVaultReady = () => {
+    refresher.schedule();
+    if (opts.watch !== false && !watcher && !stopped) {
+      watcher = createWatcher({ vaultDir: config.vaultPath, onChanges, onRescan });
+      watcher.start();
+    }
+  };
+  if (vaultReady) onVaultReady();
 
   // --- HTTP: OAuth authorization server, bearer-guarded /mcp, /health -----------------------
 
@@ -357,6 +385,7 @@ export async function startService(
   }
 
   async function stop(): Promise<void> {
+    stopped = true;
     scheduler.stop();
     if (rebuildRetryTimer) {
       clearTimeout(rebuildRetryTimer);
