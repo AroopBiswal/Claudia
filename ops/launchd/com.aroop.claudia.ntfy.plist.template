@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent template for Claudia's self-hosted ntfy server.
+
+  Placeholders, substituted by the orchestrator's install step (not by any
+  script in this task):
+    {{NTFY_BIN}}  absolute path to the built ntfy binary (e.g. ~/.claudia/ntfy/bin/ntfy)
+    {{NTFY_DIR}}  ntfy state directory (e.g. ~/.claudia/ntfy), holding server.yml
+    {{LOG_DIR}}   directory for stdout/stderr logs (e.g. ~/.claudia/logs)
+
+  This template is not installed or loaded by any script in ops/ for this
+  task; launchctl setup is a separate, later step.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.aroop.claudia.ntfy</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{NTFY_BIN}}</string>
+      <string>serve</string>
+      <string>--config</string>
+      <string>{{NTFY_DIR}}/server.yml</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>{{LOG_DIR}}/ntfy.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{LOG_DIR}}/ntfy.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>{{NTFY_DIR}}</string>
+  </dict>
+</plist>

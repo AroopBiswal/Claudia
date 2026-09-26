@@ -1,0 +1,51 @@
+# Claudia's self-hosted ntfy server config, rendered from this template by
+# ops/ntfy-setup.sh (see that script for the placeholder substitutions: the
+# ntfy state directory, the listen address, and the externally visible base
+# URL).
+#
+# See docs/DECISIONS.md B16 and docs/KICKOFF.md M8 for the reasoning: Claudia
+# listens on 127.0.0.1:8787, ntfy on 127.0.0.1:8790, both bound to loopback
+# until the human go-live step puts ntfy behind its own hostname.
+
+# Local-only listener; nothing is exposed until go-live puts this behind a
+# reverse proxy at {{BASE_URL}}.
+listen-http: "{{LISTEN}}"
+
+# Externally visible base URL the iPhone app will use once go-live wires up
+# the tunnel and DNS. Used to build message and attachment URLs, and to hash
+# base-url+topic when forwarding to the upstream (see upstream-base-url).
+base-url: "{{BASE_URL}}"
+
+# Forward messages upstream to ntfy.sh so the iPhone app can subscribe without
+# a direct connection to this Mac mini; only a hashed message ID crosses the
+# public relay; the message body stays here (see docs/PLAN.md).
+upstream-base-url: "https://ntfy.sh"
+
+# User/access-control database. Created and populated by ops/ntfy-setup.sh.
+auth-file: "{{NTFY_DIR}}/user.db"
+
+# Deny everyone by default; only the explicitly granted claudia user/topic
+# combination (set up by ops/ntfy-setup.sh) can publish or subscribe.
+auth-default-access: "deny-all"
+
+# Local message cache, used for the poll-on-reconnect and downtime catch-up
+# behavior (see docs/KICKOFF.md M4).
+cache-file: "{{NTFY_DIR}}/cache.db"
+cache-duration: "24h"
+
+# Attachments are not used by Claudia; leave attachment-cache-dir unset to
+# keep them disabled.
+
+# ntfy sits behind Claudia's own process on this Mac mini for now, and behind
+# a reverse proxy at go-live; trust the forwarded-for header for client IPs.
+behind-proxy: true
+
+# No self-service accounts; the single claudia user is provisioned by
+# ops/ntfy-setup.sh.
+enable-login: false
+enable-signup: false
+
+# No web UI needed; Claudia and the iPhone app talk to the API directly.
+web-root: disable
+
+log-level: "info"
