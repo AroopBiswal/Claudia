@@ -62,14 +62,14 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 - ☑ **M3-D1 MCP layer and serve** (`http/mcp.ts`, `main.ts`, `cli.ts serve|reindex|seed-vault`). Integration test with the real MCP client over HTTP: 401 discovery, registration, PKCE, token, refresh rotation, then every tool.
 - ☑ **M4-D2 Scheduler and action routes** (`scheduler/scheduler.ts`, `http/actions.ts`). Reminders, snooze, repeats, catch-up (last 2 hours individually, older bundled), nudges, brief fallback 90 minutes after the brief time, midnight Today refresh, nightly archive and backup.
 
-### Wave E (after Wave D)
-- ☐ **E1 End-to-end suite** (test-engineer): scratch vault + fake clock + fake ntfy: capture, file written, index updated, reminder fired, action link completes it, conflict copy merged; repeats and catch-up.
-- ☐ **E2 Capture eval** (test-engineer): `tests/eval/` ~40 synthetic cases, runner using headless Claude Code against a scratch Claudia instance, report recall, precision, reminder-time accuracy.
+### Wave E (after Wave D) ☑
+- ☑ **E1 End-to-end suite** (test-engineer): scratch vault + fake clock + fake ntfy: capture, file written, index updated, reminder fired, action link completes it, conflict copy merged; repeats and catch-up.
+- ☑ **E2 Capture eval** (test-engineer): `tests/eval/` ~40 synthetic cases, runner using headless Claude Code against a scratch Claudia instance, report recall, precision, reminder-time accuracy.
 - ☑ **M8-E3 Ops** (`ops/install.sh`, launchd plists, ntfy config and setup, `seed-vault`, `smoke`, `ops/go-live.md`, `ops/cloudflared-ingress.yml`).
 
 ### Finish
-- ☐ Eval at target (recall ≥ 90%, precision ≥ 95%, reminder times 100%).
-- ☐ Install on this Mac mini; smoke test through launchd, local ntfy and the signed Done link.
+- ☑ Eval at target (recall ≥ 90%, precision ≥ 95%, reminder times 100%): 100% / 96.6% / 100%.
+- ◐ Install on this Mac mini (done); smoke test through launchd waits on the Full Disk Access grant (HUMAN_TODO 1).
 - ☐ HUMAN_TODO complete; push; CI green; Notion Build Tasks updated.
 
 ## Task brief template

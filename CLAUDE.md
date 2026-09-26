@@ -16,7 +16,11 @@ Personal-assistant layer for Claude: an MCP server on this Mac mini, an Obsidian
 - `npm run test:integration`: vitest run against tests/integration only.
 - `npm run test:e2e`: vitest run against tests/e2e only.
 - `npm run build`: compile src to dist with tsconfig.build.json.
-- `npm run dev`: run src/cli.ts directly via Node's type stripping.
+- `npm run dev`: run src/cli.ts directly via Node's type stripping (`npm run dev -- serve`, `reindex`, `seed-vault`, `calendar-auth`).
+- `npm run plugin:pack`: build dist/claudia-plugin.zip from plugin/.
+- `npm run eval -- [--ids a,b] [--category c] [--limit n] [--concurrency n]`: capture eval with headless Claude Code (uses the owner's Claude plan; run sparingly).
+- `npm run smoke`: smoke test against the launchd-installed service (health, MCP capture, vault line, ntfy push, signed Done link, forget).
+- `bash ops/install.sh` (`--dry-run` to preview): build and install the launchd service and local ntfy; `bash ops/uninstall.sh` removes the agents.
 - Keep this section current as scripts are added.
 
 ## Hard rules
