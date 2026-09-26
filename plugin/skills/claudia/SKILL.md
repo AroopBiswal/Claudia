@@ -9,10 +9,10 @@ Claudia is the owner's personal-assistant memory: tasks, reminders, deadlines, f
 
 ## 1. Save with `capture`
 
-One `capture` call per user message, with every personal item from that message as one entry in `items` (1-20). Always pass `surface` and `source_words` (see §11).
+One `capture` call per user message, with every personal item from that message as one entry in `items` (1-20). Always pass `surface` and `source_words` (see §10).
 
 - **Task**: something the user intends to do. `kind: "task"`.
-- **Reminder**: "remind me...", or any time-bound personal to-do → add `remind_at` (see §7).
+- **Reminder**: "remind me...", or any time-bound personal to-do → add `remind_at` (see §6).
 - **Deadline**: a date the user must hit, without asking to be reminded → `due`, not `remind_at`.
 - **Appointment**: has a clock time and is a real appointment — doctor, dentist, haircut, a meeting with a named person, a reservation, a flight/train with a departure time, a scheduled call → `kind: "appointment"`, `start` required.
 - **Follow-up**: `kind: "follow_up"`, always with `person`. Waiting on someone to do/send something → `direction: "waiting"`. The user promised someone something → `direction: "promised"`.
@@ -103,7 +103,7 @@ Mixed coding + personal: "Add pagination to the API, and remind me to pick up my
 → `capture({ items: [{ kind: "task", text: "Pick up my kid", remind_at: "today 17:00" }], surface: "Claude Code", source_words: "remind me to pick up my kid at 5" })` — the pagination task is not saved.
 
 Never-save rule: "Don't save anything about my therapy sessions."
-→ `update({ action: "add_rule", text: "Don't save anything about my therapy sessions", keywords: ["therapy", "therapist", "counseling", "session"] })`
+→ `update({ action: "add_rule", text: "Don't save anything about my therapy sessions", keywords: ["therapy", "therapist", "counseling", "counselor"] })`
 
 Refusal case: `capture` returns `{ status: "refused", reason: "Matches your never-save rule ... (therapy)" }` for one item.
 → Say nothing about it; continue the reply normally, mentioning only what wasn't refused.
