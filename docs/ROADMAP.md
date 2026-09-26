@@ -58,9 +58,9 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 - ☑ **M3-C1 Write services** (`services/context.ts`, `capture.ts`, `update.ts`, `log.ts`, `calendar/sync.ts`). Capture per docs/tools.md incl. rules and sensitive refusals, duplicates, people notes, follow-up links, appointments, receipts, Log lines, undo journal; every update action incl. repeat completion.
 - ☑ **M6-C2 Read services and generated notes** (`recall.ts`, `agenda.ts`, `notify.ts`, `generated.ts`, `engine/backup.ts`).
 
-### Wave D (after Wave C)
-- ☐ **M3-D1 MCP layer and serve** (`http/mcp.ts`, `main.ts`, `cli.ts serve|reindex|seed-vault`). Integration test with the real MCP client over HTTP: 401 discovery, registration, PKCE, token, refresh rotation, then every tool.
-- ☐ **M4-D2 Scheduler and action routes** (`scheduler/scheduler.ts`, `http/actions.ts`). Reminders, snooze, repeats, catch-up (last 2 hours individually, older bundled), nudges, brief fallback 90 minutes after the brief time, midnight Today refresh, nightly archive and backup.
+### Wave D (after Wave C) ☑
+- ☑ **M3-D1 MCP layer and serve** (`http/mcp.ts`, `main.ts`, `cli.ts serve|reindex|seed-vault`). Integration test with the real MCP client over HTTP: 401 discovery, registration, PKCE, token, refresh rotation, then every tool.
+- ☑ **M4-D2 Scheduler and action routes** (`scheduler/scheduler.ts`, `http/actions.ts`). Reminders, snooze, repeats, catch-up (last 2 hours individually, older bundled), nudges, brief fallback 90 minutes after the brief time, midnight Today refresh, nightly archive and backup.
 
 ### Wave E (after Wave D)
 - ☐ **E1 End-to-end suite** (test-engineer): scratch vault + fake clock + fake ntfy: capture, file written, index updated, reminder fired, action link completes it, conflict copy merged; repeats and catch-up.
