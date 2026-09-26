@@ -189,6 +189,10 @@ export function createOAuthStore(db: DatabaseSync, opts: { now: () => Date }) {
         revoked INTEGER NOT NULL DEFAULT 0
       );
       CREATE INDEX IF NOT EXISTS oauth_tokens_family ON oauth_tokens(family_id);
+      CREATE TABLE IF NOT EXISTS oauth_used_approvals (
+        request_hash TEXT PRIMARY KEY,
+        expires_at INTEGER NOT NULL
+      );
     `);
   }
 
@@ -442,6 +446,26 @@ export function createOAuthStore(db: DatabaseSync, opts: { now: () => Date }) {
     };
   }
 
+  /**
+   * Marks a signed OAuth approval request (the token carried across the /oauth/authorize ->
+   * /oauth/approve hop) as used, keyed by a hash of the request token. Returns true the first
+   * time a given request is consumed, false on every subsequent attempt (replay), so a code can
+   * never be minted twice from the same approval. `expiresAt` (epoch ms) is stored so that stale
+   * rows can be pruned; it does not extend how long the hash itself is remembered as used.
+   */
+  function consumeApprovalOnce(requestHash: string, expiresAt: number): boolean {
+    db.prepare('DELETE FROM oauth_used_approvals WHERE expires_at < ?').run(nowMs());
+    try {
+      db.prepare('INSERT INTO oauth_used_approvals (request_hash, expires_at) VALUES (?, ?)').run(
+        requestHash,
+        expiresAt,
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** RFC 7009: revoking a refresh token revokes its whole family; revoking an access token revokes only itself. */
   function revokeToken(token: string): void {
     const hash = sha256hex(token);
@@ -468,6 +492,7 @@ export function createOAuthStore(db: DatabaseSync, opts: { now: () => Date }) {
     refreshTokens,
     verifyAccessToken,
     revokeToken,
+    consumeApprovalOnce,
   };
 }
 

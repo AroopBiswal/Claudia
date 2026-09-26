@@ -20,6 +20,10 @@ function isLoopbackHost(hostname: string): boolean {
 }
 
 function isLoopbackHttpUrl(url: URL): boolean {
+  // RFC 6749 3.1.2 forbids a fragment in the redirect_uri; userinfo (user:pass@host) has no
+  // legitimate use here and, left unchecked, is an easy way to smuggle unexpected characters
+  // into a URI that otherwise parses as an allowed loopback host.
+  if (url.hash !== '' || url.username !== '' || url.password !== '') return false;
   return url.protocol === 'http:' && isLoopbackHost(url.hostname);
 }
 

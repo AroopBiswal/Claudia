@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import express, {
   Router,
   type NextFunction,
@@ -349,6 +350,21 @@ export function createOAuthRouter(opts: CreateOAuthRouterOptions): Router {
             403,
             'Sign-in mismatch',
             'The signed-in identity changed. Please try connecting again.',
+          );
+          return;
+        }
+
+        // Single-use: a signed approval request (the hidden `request` field) must never mint two
+        // authorization codes, whether from a double form submit, a replayed request, or a
+        // resubmission after the browser goes back. The hash is remembered until the request's
+        // own expiry, matching approval-token.ts's TTL.
+        const requestHash = createHash('sha256').update(requestToken).digest('hex');
+        if (!store.consumeApprovalOnce(requestHash, approvalRequest.expiresAt)) {
+          sendErrorPage(
+            res,
+            400,
+            'Already used',
+            'This approval link has already been used. Please try connecting again.',
           );
           return;
         }

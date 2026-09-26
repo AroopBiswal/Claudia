@@ -157,13 +157,25 @@ function hasLongDigitRun(text: string): boolean {
   return digitRuns(text).some((count) => count >= 12);
 }
 
+// A formatted phone number (3-3-4, US-style), with an optional leading +1 and
+// separators of space/dot/dash, or the area code in parentheses. Requires an
+// actual separator (or parens) between every group, so a bare unformatted run
+// of digits (which might be an account/ID number) never matches here.
+const FORMATTED_PHONE_RE =
+  /(?<!\d)(?:\+1[\s.-]?)?(?:\(\d{3}\)[\s.-]?|\d{3}[\s.-])\d{3}[\s.-]\d{4}(?!\d)/g;
+
+function stripFormattedPhoneNumbers(text: string): string {
+  return text.replace(FORMATTED_PHONE_RE, ' ');
+}
+
 function hasIdNumberNearby(text: string): boolean {
   ID_WORD_RE.lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = ID_WORD_RE.exec(text))) {
     const after = text.slice(match.index + match[0].length);
     const words = after.split(/\s+/).filter(Boolean).slice(0, 5);
-    if (digitRuns(words.join(' ')).some((count) => count >= 6)) {
+    const windowText = stripFormattedPhoneNumbers(words.join(' '));
+    if (digitRuns(windowText).some((count) => count >= 6)) {
       return true;
     }
     if (match.index === ID_WORD_RE.lastIndex) {
