@@ -86,7 +86,13 @@ DEFAULT_VAULT="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/Claud
 # --- Step a: preconditions ---------------------------------------------------
 
 check_preconditions() {
-  [ "$(uname -s)" = "Darwin" ] || fail "this installer only supports macOS"
+  if [ "$(uname -s)" != "Darwin" ]; then
+    if $DRY_RUN; then
+      log "warning: not macOS; printing the plan only"
+    else
+      fail "this installer only supports macOS"
+    fi
+  fi
 
   [ -f "$REPO_DIR/package.json" ] || fail "REPO_DIR ($REPO_DIR) doesn't look like the Claudia repo (no package.json)"
   if ! grep -Eq '"name"[[:space:]]*:[[:space:]]*"claudia"' "$REPO_DIR/package.json"; then

@@ -22,23 +22,60 @@ const WORD_CHAR_SOURCE = '\\p{L}\\p{N}';
  * whitespace between the words. A single-word keyword also matches its
  * simple plural (trailing "s" or "es"), so "therapist" matches "therapists".
  */
-function buildKeywordRegex(keyword: string): RegExp | null {
+function keywordPattern(keyword: string): string | null {
   const words = keyword.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return null;
-
   const escaped = words.map(escapeRegExp).join('\\s+');
-  const pattern = words.length === 1 ? `${escaped}(?:es|s)?` : escaped;
+  return words.length === 1 ? `${escaped}(?:es|s)?` : escaped;
+}
 
+function wholeWordRegex(pattern: string): RegExp {
   return new RegExp(`(?<![${WORD_CHAR_SOURCE}])(?:${pattern})(?![${WORD_CHAR_SOURCE}])`, 'iu');
+}
+
+// Compiling Unicode-aware regexes dominates the cost of matching, and the same rules are checked on
+// every capture, so compiled matchers are cached (bounded; cleared wholesale when it grows large).
+const MAX_CACHE = 5000;
+const keywordCache = new Map<string, RegExp | null>();
+const combinedCache = new Map<string, RegExp | null>();
+
+function cached(cache: Map<string, RegExp | null>, key: string, build: () => RegExp | null) {
+  let regex = cache.get(key);
+  if (regex === undefined) {
+    if (cache.size >= MAX_CACHE) cache.clear();
+    regex = build();
+    cache.set(key, regex);
+  }
+  return regex;
+}
+
+function keywordRegex(keyword: string): RegExp | null {
+  return cached(keywordCache, keyword, () => {
+    const pattern = keywordPattern(keyword);
+    return pattern === null ? null : wholeWordRegex(pattern);
+  });
+}
+
+/** One regex matching any keyword of any rule, so a text with no match is scanned only once. */
+function combinedRegex(rules: Rule[]): RegExp | null {
+  const keywords = rules.flatMap((r) => r.keywords);
+  return cached(combinedCache, keywords.join('\u0000'), () => {
+    const patterns = keywords.map(keywordPattern).filter((p): p is string => p !== null);
+    return patterns.length === 0 ? null : wholeWordRegex(patterns.join('|'));
+  });
 }
 
 export function matchRules(texts: string[], rules: Rule[]): RuleMatch | null {
   const candidates = texts.filter((text) => text.length > 0);
   if (candidates.length === 0) return null;
 
+  const any = combinedRegex(rules);
+  if (!any || !candidates.some((text) => any.test(text))) return null;
+
+  // Something matched: report the first rule (in note order) and keyword responsible.
   for (const rule of rules) {
     for (const keyword of rule.keywords) {
-      const regex = buildKeywordRegex(keyword);
+      const regex = keywordRegex(keyword);
       if (!regex) continue;
       for (const text of candidates) {
         if (regex.test(text)) {
