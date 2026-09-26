@@ -167,7 +167,7 @@ describe('ops/install.sh --dry-run (executed against a scratch environment)', ()
     expect(stdout).toContain('seed-vault');
     expect(stdout).toContain('would render');
     expect(stdout).toContain('com.aroop.claudia.plist');
-    expect(stdout).toContain('would wait up to 30s for http://127.0.0.1:8787/health');
+    expect(stdout).toContain('would wait up to 60s for http://127.0.0.1:8787/health');
     expect(stdout).toContain('done');
 
     // Nothing was actually created.

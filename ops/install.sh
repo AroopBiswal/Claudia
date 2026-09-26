@@ -214,7 +214,8 @@ build_release() {
   mkdir -p "$APP_DIR"
   tmp_link="$APP_DIR/.current.tmp.$$"
   ln -sfn "$release_dir" "$tmp_link"
-  mv -f "$tmp_link" "$CURRENT_LINK"
+  # rename(2) replaces the symlink itself atomically; plain `mv` would follow it into the old release.
+  "$NODE_BIN" -e 'require("node:fs").renameSync(process.argv[1], process.argv[2])' "$tmp_link" "$CURRENT_LINK"
 
   prune_old_releases
 }
@@ -345,6 +346,8 @@ setup_ntfy_agent() {
   local uid
   uid="$(id -u)"
   launchctl bootout "gui/$uid/com.aroop.claudia.ntfy" >/dev/null 2>&1 || true
+  # Wait until launchd has really unloaded it (a process held by macOS can take a moment to exit).
+  for _ in $(seq 1 40); do launchctl print "gui/$uid/com.aroop.claudia.ntfy" >/dev/null 2>&1 || break; sleep 0.5; done
   launchctl bootstrap "gui/$uid" "$plist_dest"
 
   log "waiting for ntfy to become healthy"
@@ -388,7 +391,7 @@ setup_claudia_agent() {
   if $DRY_RUN; then
     plan "render $plist_template to $plist_dest"
     plan "launchctl bootout the claudia agent (ignoring errors), then bootstrap it from $plist_dest"
-    plan "wait up to 30s for http://127.0.0.1:8787/health and print it"
+    plan "wait up to 60s for http://127.0.0.1:8787/health and print it"
     return
   fi
 
@@ -407,20 +410,22 @@ setup_claudia_agent() {
   local uid
   uid="$(id -u)"
   launchctl bootout "gui/$uid/com.aroop.claudia" >/dev/null 2>&1 || true
+  # Wait until launchd has really unloaded it (a process held by macOS can take a moment to exit).
+  for _ in $(seq 1 40); do launchctl print "gui/$uid/com.aroop.claudia" >/dev/null 2>&1 || break; sleep 0.5; done
   launchctl bootstrap "gui/$uid" "$plist_dest"
 
   log "waiting for Claudia to come up"
   local i health
   health=""
-  for i in $(seq 1 30); do
-    if health="$(curl -fsS --max-time 2 "http://127.0.0.1:8787/health" 2>/dev/null)"; then
+  for i in $(seq 1 60); do
+    if health="$(curl -fsS --max-time 6 "http://127.0.0.1:8787/health" 2>/dev/null)"; then
       break
     fi
     sleep 1
   done
 
   if [ -z "$health" ]; then
-    fail "Claudia did not respond on http://127.0.0.1:8787/health within 30s"
+    fail "Claudia did not respond on http://127.0.0.1:8787/health within 60s"
   fi
 
   log "health: $health"
