@@ -3,7 +3,7 @@
 You are building the MVP of Claudia, a personal-assistant layer for Claude. This brief is the process contract; the Notion plan is the product contract.
 
 ## Repo
-This repo already exists at /Users/aroopbiswal/Code/GitHub/Claudia with a GitHub remote named origin. Inspect what's there before scaffolding and build on it rather than replacing it. Never delete existing files without recording why in docs/DECISIONS.md.
+This repo already exists at /Users/aroopbiswal/Code/Deployments/Claudia with a GitHub remote named origin. Inspect what's there before scaffolding and build on it rather than replacing it. Never delete existing files without recording why in docs/DECISIONS.md.
 
 ## Roles
 - You (main session, Opus 5.5, xhigh effort): architect and orchestrator. Plan, design the contracts (vault format, tool schemas, module boundaries, data flow), split work into small tasks, review every diff, integrate, commit and push. Keep your context for design, review and decisions.
