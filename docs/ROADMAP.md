@@ -31,21 +31,23 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 
 ## Milestones and tasks
 
-### M0 Bootstrap ◐
+### M0 Bootstrap ☑
 - ☑ T1 Scaffold: TypeScript 6.0 strict on Node 24+, ESLint + Prettier, Vitest, `npm run verify`, CI (Node 24 and 26).
 - ☑ T2 Notion snapshots (PLAN.md, DECISIONS.md), contracts (vault-format.md, tools.md), this roadmap, HUMAN_TODO.md.
 - ☑ T3 Notion: project Status In Progress, GitHub Link set.
 - Acceptance: verify green locally and in CI.
 
-### Wave A (parallel, after M0)
-- ☐ **M1-A1 Vault core** (`vault/line.ts`, `note.ts`, `items.ts`, `ids.ts`, `layout.ts`). Lossless line/note model, fields, tags, links, block IDs, canonical insertion, semantic items for every kind. Acceptance: byte-identical round trip on goldens in `tests/fixtures/vault/` (CRLF, BOM, no final newline, code fences, frontmatter, emoji variants, malformed lines); field edit tests show only the target bytes change; items extraction per note type.
-- ☐ **M1-A2 Time and repeats** (`time/expressions.ts`, `time/format.ts`, `vault/repeat.ts`). Every form in docs/tools.md, DST gap and overlap, receipts, rrule text rules, next occurrence per vault-format section 7. Acceptance: table tests across the 2026-03-08 and 2026-11-01 transitions in America/Los_Angeles.
-- ☐ **M6-A3 Settings, rules, templates** (`vault/settings.ts`, `vault/rules.ts`, `vault/templates.ts`). Acceptance: settings defaults and warnings; rule matching on whole words and phrases; sensitive guard catches passwords, PINs, card, account and ID-like numbers without flagging dates, times or phone-free text; templates match vault-format.md exactly.
-- ☐ **M3-A4 OAuth and HTTP skeleton** (`auth/*`, `http/app.ts` with `/health`, well-known, `/oauth/*`, bearer middleware on `/mcp`). Acceptance: unit tests for DCR validation and redirect allowlist, PKCE S256, code single use and expiry, refresh rotation and reuse detection, Access JWT verification with locally generated keys (wrong audience, wrong issuer, wrong email, expired, bad signature), 401 with `WWW-Authenticate: Bearer resource_metadata=…`.
-- ☐ **M4-A5 Action links and ntfy** (`notify/links.ts`, `notify/ntfy.ts`, `tests/helpers/fake-ntfy.ts`). Acceptance: tampered, expired, wrong-action and replayed links rejected; publish payload has Done, +1 hour, Tomorrow http actions and an obsidian:// click URL.
-- ☐ **M5-A6 Google Calendar adapter** (`calendar/google.ts`, `calendar/auth.ts`). Scope `https://www.googleapis.com/auth/calendar.app.created` only; find-or-create the "Claudia" calendar; create, update, cancel; token refresh; fully mocked. Acceptance: request shapes asserted against a fake fetch.
-- ☐ **M8-A7 Watchdog Worker** (`watchdog/`). Cron every 5 minutes, alert after two consecutive failures and once on recovery via a public ntfy.sh topic; KV state; not deployed. Acceptance: state machine tests.
-- ☐ **M7-A8 Plugin and Claude setup docs** (`plugin/`, `scripts/pack-plugin.ts`, `npm run plugin:pack`, `docs/claude-setup.md`). Acceptance: structure test (manifest, frontmatter, connector URL), pack produces `dist/claudia-plugin.zip`.
+### Wave A (parallel, after M0) ☑
+- ☑ **M8-A9 Self-hosted ntfy** (`ops/build-ntfy.sh`, `ops/ntfy-setup.sh`, self-test): server built from source (B17).
+- ☑ **E2a Eval cases and scorer** (`tests/eval/cases.json`, `score.ts`).
+- ☑ **M1-A1 Vault core** (`vault/line.ts`, `note.ts`, `items.ts`, `ids.ts`, `layout.ts`). Lossless line/note model, fields, tags, links, block IDs, canonical insertion, semantic items for every kind. Acceptance: byte-identical round trip on goldens in `tests/fixtures/vault/` (CRLF, BOM, no final newline, code fences, frontmatter, emoji variants, malformed lines); field edit tests show only the target bytes change; items extraction per note type.
+- ☑ **M1-A2 Time and repeats** (`time/expressions.ts`, `time/format.ts`, `vault/repeat.ts`). Every form in docs/tools.md, DST gap and overlap, receipts, rrule text rules, next occurrence per vault-format section 7. Acceptance: table tests across the 2026-03-08 and 2026-11-01 transitions in America/Los_Angeles.
+- ☑ **M6-A3 Settings, rules, templates** (`vault/settings.ts`, `vault/rules.ts`, `vault/templates.ts`). Acceptance: settings defaults and warnings; rule matching on whole words and phrases; sensitive guard catches passwords, PINs, card, account and ID-like numbers without flagging dates, times or phone-free text; templates match vault-format.md exactly.
+- ☑ **M3-A4 OAuth and HTTP skeleton** (`auth/*`, `http/app.ts` with `/health`, well-known, `/oauth/*`, bearer middleware on `/mcp`). Acceptance: unit tests for DCR validation and redirect allowlist, PKCE S256, code single use and expiry, refresh rotation and reuse detection, Access JWT verification with locally generated keys (wrong audience, wrong issuer, wrong email, expired, bad signature), 401 with `WWW-Authenticate: Bearer resource_metadata=…`.
+- ☑ **M4-A5 Action links and ntfy** (`notify/links.ts`, `notify/ntfy.ts`, `tests/helpers/fake-ntfy.ts`). Acceptance: tampered, expired, wrong-action and replayed links rejected; publish payload has Done, +1 hour, Tomorrow http actions and an obsidian:// click URL.
+- ☑ **M5-A6 Google Calendar adapter** (`calendar/google.ts`, `calendar/auth.ts`). Scope `https://www.googleapis.com/auth/calendar.app.created` only; find-or-create the "Claudia" calendar; create, update, cancel; token refresh; fully mocked. Acceptance: request shapes asserted against a fake fetch.
+- ☑ **M8-A7 Watchdog Worker** (`watchdog/`). Cron every 5 minutes, alert after two consecutive failures and once on recovery via a public ntfy.sh topic; KV state; not deployed. Acceptance: state machine tests.
+- ☑ **M7-A8 Plugin and Claude setup docs** (`plugin/`, `scripts/pack-plugin.ts`, `npm run plugin:pack`, `docs/claude-setup.md`). Acceptance: structure test (manifest, frontmatter, connector URL), pack produces `dist/claudia-plugin.zip`.
 
 ### Wave B (after Wave A)
 - ☐ **M2-B1 Index and state** (`engine/index.ts`, `engine/state.ts`). SQLite index in `~/.claudia/index.db` with FTS5, rebuild from the vault, per-file reindex, queries for recall, agenda and scheduler; state in `~/.claudia/state.db`. Acceptance: rebuild equals incremental; search ranking; deleting index.db loses nothing.
