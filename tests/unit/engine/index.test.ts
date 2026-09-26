@@ -497,3 +497,24 @@ describe('openIndex: rebuild equals incremental updates (randomized property tes
     await vault.cleanup();
   });
 });
+
+describe('rebuild with an unreadable note', () => {
+  it('indexes the readable notes and reports the unreadable one as skipped', async () => {
+    const { chmod } = await import('node:fs/promises');
+    const vault = await makeScratchVault({
+      'Tasks/To do.md': '# To do\n\n- [ ] Water plants ⏰ 2026-10-01 18:00 ^t0001\n',
+      'Tasks/Appointments.md': '# Appointments\n\n',
+    });
+    await chmod(`${vault.dir}/Tasks/Appointments.md`, 0o000);
+    const index = openIndex({ dbPath: ':memory:', vaultDir: vault.dir });
+    try {
+      const result = await index.rebuild();
+      expect(result.skipped).toEqual(['Tasks/Appointments.md']);
+      expect(index.getItem('t0001')?.reminder).toBe('2026-10-01 18:00');
+    } finally {
+      await chmod(`${vault.dir}/Tasks/Appointments.md`, 0o644);
+      index.close();
+      await vault.cleanup();
+    }
+  });
+});

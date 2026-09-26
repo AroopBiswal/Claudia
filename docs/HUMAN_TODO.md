@@ -12,7 +12,7 @@ You granted the Claudia runtime (`~/.claudia/runtime/bin/node`) access to the va
 
 1. In Terminal: `sudo pmset -a sleep 0 disksleep 0 autorestart 1 womp 1`
 2. Check: `pmset -g | grep -E " sleep|autorestart|womp"` shows `sleep 0`, `autorestart 1`, `womp 1`.
-3. System Settings → your name → iCloud → iCloud Drive → turn **off** "Optimize Mac Storage" (so vault files stay downloaded).
+3. System Settings → your name → iCloud → iCloud Drive → turn **off** "Optimize Mac Storage" (so vault files stay downloaded). It is currently on, and iCloud had already moved two vault notes to the cloud, which the background service cannot download on its own.
 4. Stay logged in on the Mac mini. With FileVault on, after a power cut Claudia is down until you log in once (the watchdog in step 5 tells you).
 5. Make sure Time Machine is on (System Settings → General → Time Machine). Claudia also keeps nightly vault snapshots in `~/.claudia/backups` for 30 days.
 6. Optional: a small UPS for the Mac mini and router.

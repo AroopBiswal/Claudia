@@ -171,6 +171,11 @@ export async function startService(
       try {
         const result = await index.rebuild();
         log(`index rebuilt: ${String(result.notes)} notes, ${String(result.items)} items`);
+        if (result.skipped.length > 0) {
+          log(
+            `could not read ${String(result.skipped.length)} note(s), will retry: ${result.skipped.join(', ')}`,
+          );
+        }
         if (!vaultReady) {
           vaultReady = true;
           onVaultReady();

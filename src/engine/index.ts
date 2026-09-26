@@ -32,7 +32,7 @@ export interface SearchQuery {
 }
 
 export interface Index {
-  rebuild(): Promise<{ notes: number; items: number; ms: number }>;
+  rebuild(): Promise<{ notes: number; items: number; ms: number; skipped: string[] }>;
   refresh(): Promise<string[]>;
   reindexFile(relPath: string): Promise<void>;
   indexText(relPath: string, text: string, mtimeMs: number): void;
@@ -418,7 +418,12 @@ export function openIndex(opts: { dbPath: string; vaultDir: string; now?: () => 
     indexText(relPath, text, fileStat.mtimeMs);
   }
 
-  async function rebuild(): Promise<{ notes: number; items: number; ms: number }> {
+  async function rebuild(): Promise<{
+    notes: number;
+    items: number;
+    ms: number;
+    skipped: string[];
+  }> {
     const start = Date.now();
 
     db.exec('DELETE FROM items_fts');
@@ -429,11 +434,21 @@ export function openIndex(opts: { dbPath: string; vaultDir: string; now?: () => 
     const allFiles = await walkMarkdownFiles(vaultDir);
     const toIndex = filterIndexable(allFiles);
 
+    // One unreadable note (e.g. an iCloud placeholder that a background process can't download,
+    // which fails with EDEADLK) must not block the whole index; it is retried on the next refresh.
+    const skipped: string[] = [];
     for (const relPath of toIndex) {
       const abs = `${vaultDir}/${relPath}`;
-      const fileStat = await stat(abs);
-      const text = await readFile(abs, 'utf8');
-      indexText(relPath, text, fileStat.mtimeMs);
+      try {
+        const fileStat = await stat(abs);
+        const text = await readFile(abs, 'utf8');
+        indexText(relPath, text, fileStat.mtimeMs);
+      } catch {
+        skipped.push(relPath);
+      }
+    }
+    if (skipped.length === toIndex.length && toIndex.length > 0) {
+      throw new Error(`no note in the vault could be read (${String(skipped.length)} tried)`);
     }
 
     const notesCount = (db.prepare('SELECT COUNT(*) as n FROM notes').get() as { n: number }).n;
@@ -441,7 +456,7 @@ export function openIndex(opts: { dbPath: string; vaultDir: string; now?: () => 
     const ms = Date.now() - start;
     setMeta('lastRebuild', now().toISOString());
 
-    return { notes: notesCount, items: itemsCount, ms };
+    return { notes: notesCount, items: itemsCount, ms, skipped };
   }
 
   async function refresh(): Promise<string[]> {
@@ -467,14 +482,18 @@ export function openIndex(opts: { dbPath: string; vaultDir: string; now?: () => 
 
     for (const relPath of toKeep) {
       const abs = `${vaultDir}/${relPath}`;
-      const fileStat = await stat(abs);
-      const existing = dbMap.get(relPath);
-      if (existing && existing.mtime_ms === fileStat.mtimeMs && existing.size === fileStat.size) {
-        continue;
+      try {
+        const fileStat = await stat(abs);
+        const existing = dbMap.get(relPath);
+        if (existing && existing.mtime_ms === fileStat.mtimeMs && existing.size === fileStat.size) {
+          continue;
+        }
+        const text = await readFile(abs, 'utf8');
+        indexText(relPath, text, fileStat.mtimeMs);
+        changed.push(relPath);
+      } catch {
+        // Unreadable right now (see rebuild); keep the previous entry and retry next refresh.
       }
-      const text = await readFile(abs, 'utf8');
-      indexText(relPath, text, fileStat.mtimeMs);
-      changed.push(relPath);
     }
 
     return changed;
