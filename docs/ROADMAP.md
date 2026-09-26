@@ -49,9 +49,10 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 - ☑ **M8-A7 Watchdog Worker** (`watchdog/`). Cron every 5 minutes, alert after two consecutive failures and once on recovery via a public ntfy.sh topic; KV state; not deployed. Acceptance: state machine tests.
 - ☑ **M7-A8 Plugin and Claude setup docs** (`plugin/`, `scripts/pack-plugin.ts`, `npm run plugin:pack`, `docs/claude-setup.md`). Acceptance: structure test (manifest, frontmatter, connector URL), pack produces `dist/claudia-plugin.zip`.
 
-### Wave B (after Wave A)
-- ☐ **M2-B1 Index and state** (`engine/index.ts`, `engine/state.ts`). SQLite index in `~/.claudia/index.db` with FTS5, rebuild from the vault, per-file reindex, queries for recall, agenda and scheduler; state in `~/.claudia/state.db`. Acceptance: rebuild equals incremental; search ranking; deleting index.db loses nothing.
-- ☐ **M2-B2 Writer, watcher, janitor** (`engine/writer.ts`, `watcher.ts`, `janitor.ts`, `idassign.ts`, `archive.ts`). Acceptance: atomic replace, per-file serialization under concurrency, quiet-period wait with fake clock, edits located by block ID after the file shifted, conflict merge rules, ID assignment only where the contract allows.
+### Wave B (after Wave A) ☑
+- ☑ **QA-A Hardening**: edge cases for OAuth, Access JWTs, links, time, parser, rules; fixed approval replay, loopback redirect fragments, phone numbers near ID words.
+- ☑ **M2-B1 Index and state** (`engine/index.ts`, `engine/state.ts`). SQLite index in `~/.claudia/index.db` with FTS5, rebuild from the vault, per-file reindex, queries for recall, agenda and scheduler; state in `~/.claudia/state.db`. Acceptance: rebuild equals incremental; search ranking; deleting index.db loses nothing.
+- ☑ **M2-B2 Writer, watcher, janitor** (`engine/writer.ts`, `watcher.ts`, `janitor.ts`, `idassign.ts`, `archive.ts`). Acceptance: atomic replace, per-file serialization under concurrency, quiet-period wait with fake clock, edits located by block ID after the file shifted, conflict merge rules, ID assignment only where the contract allows.
 
 ### Wave C (after Wave B)
 - ☐ **M3-C1 Write services** (`services/context.ts`, `capture.ts`, `update.ts`, `log.ts`, `calendar/sync.ts`). Capture per docs/tools.md incl. rules and sensitive refusals, duplicates, people notes, follow-up links, appointments, receipts, Log lines, undo journal; every update action incl. repeat completion.
