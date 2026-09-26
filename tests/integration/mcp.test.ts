@@ -108,6 +108,7 @@ describe('MCP layer over real HTTP (integration)', () => {
       clock,
       accessJwks: accessKeys.jwks,
       watch: false,
+      schedulerAutoStart: false,
     });
 
     expect(service.url).toBe(publicUrl);

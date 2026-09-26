@@ -33,7 +33,9 @@ import { createVaultWriter, type VaultWriter } from './engine/writer.ts';
 import { createWatcher, type Watcher } from './engine/watcher.ts';
 import { createHealth, type HealthDeps } from './health.ts';
 import { createMcpHandler } from './http/mcp.ts';
+import { createActionsRouter } from './http/actions.ts';
 import { createHttpApp } from './http/app.ts';
+import { createScheduler, type Scheduler } from './scheduler/scheduler.ts';
 import type { Notifier } from './notify/ntfy.ts';
 import { createNtfyNotifier } from './notify/ntfy.ts';
 import { loadOrCreateSecret, readSecretText } from './secrets.ts';
@@ -57,6 +59,8 @@ export interface ServiceOptions {
   extraRouters?: Router[];
   /** Starts a background job runner (e.g. the scheduler); its `stop()` is called by `stop()`. */
   startBackground?: (ctx: ClaudiaContext) => { stop(): void };
+  /** Start the scheduler's 30-second loop (default true). Tests turn it off and call `scheduler.tick()`. */
+  schedulerAutoStart?: boolean;
   /** Disables the vault file watcher. Default true. Tests set this to `false`. */
   watch?: boolean;
   /** Starts the HTTP server. Default true. */
@@ -69,6 +73,7 @@ export interface RunningService {
   ctx: ClaudiaContext;
   /** The base URL the HTTP server is actually reachable at, or `config.publicUrl` when not listening. */
   url: string;
+  scheduler: Scheduler;
   stop(): Promise<void>;
 }
 
@@ -318,6 +323,7 @@ export async function startService(
     bearer,
     health,
     mcp,
+    actions: createActionsRouter(ctx),
   });
   for (const router of opts.extraRouters ?? []) {
     app.use(router);
@@ -341,7 +347,17 @@ export async function startService(
     url = `http://${config.host}:${String(actualPort)}`;
   }
 
+  // Reminders, nudges, the brief fallback and nightly jobs. The first tick runs right away, which is
+  // the downtime catch-up. Calendar events are reconciled once at start so appointments captured
+  // before the calendar was configured get their events.
+  const scheduler = createScheduler(ctx, { backupsDir: config.paths.backupsDir });
+  if (opts.schedulerAutoStart !== false) {
+    scheduler.start();
+    if (ctx.calendar) void ctx.calendar.reconcile();
+  }
+
   async function stop(): Promise<void> {
+    scheduler.stop();
     if (rebuildRetryTimer) {
       clearTimeout(rebuildRetryTimer);
       rebuildRetryTimer = null;
@@ -362,5 +378,5 @@ export async function startService(
     state.close();
   }
 
-  return { ctx, url, stop };
+  return { ctx, url, scheduler, stop };
 }
