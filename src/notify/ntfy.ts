@@ -125,7 +125,7 @@ export function reminderPush(opts: {
 }): PushMessage {
   const title = opts.late ? 'Reminder (late)' : 'Reminder';
   const message = opts.text + (opts.late ? ` — was due ${opts.fireLocal}` : '');
-  const click = `obsidian://open?vault=${opts.vaultName}&file=${encodeURIComponent(
+  const click = `obsidian://open?vault=${encodeURIComponent(opts.vaultName)}&file=${encodeURIComponent(
     `${opts.notePath}#^${opts.id}`,
   )}`;
 
@@ -172,7 +172,7 @@ export function bundlePush(opts: {
 }): PushMessage {
   const message = opts.items.map((item) => `${item.fireLocal} — ${item.text}`).join('\n');
   const notePath = opts.notePath ?? 'Today.md';
-  const click = `obsidian://open?vault=${opts.vaultName}&file=${encodeURIComponent(notePath)}`;
+  const click = `obsidian://open?vault=${encodeURIComponent(opts.vaultName)}&file=${encodeURIComponent(notePath)}`;
 
   return {
     title: 'While I was offline',
