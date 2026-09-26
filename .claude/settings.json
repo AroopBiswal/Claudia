@@ -1,0 +1,19 @@
+{
+  "env": {
+    "CLAUDE_CODE_SUBAGENT_MODEL": "claude-sonnet-5"
+  },
+  "permissions": {
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(cloudflared tunnel route *)",
+      "Bash(wrangler deploy *)",
+      "Bash(npx wrangler deploy *)",
+      "Edit(~/.cloudflared/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/Library/Messages/**)"
+    ]
+  }
+}

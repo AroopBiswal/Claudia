@@ -1,0 +1,5 @@
+#!/bin/sh
+# Block any push unless the full check suite passes (once a verify script exists).
+if [ -f package.json ] && node -e "const s=require('./package.json').scripts||{}; process.exit(s.verify?0:1)"; then
+  npm run --silent verify || { echo "pre-push: verify failed, push blocked"; exit 1; }
+fi
