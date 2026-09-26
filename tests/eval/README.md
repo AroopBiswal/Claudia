@@ -1,46 +1,67 @@
 # Capture eval
 
-A test set and scorer for Claudia's capture skill: does the `claudia` plugin skill call `capture`
-(and `update`/`recall`/`agenda`) correctly on realistic chat messages, and does it correctly
-*not* call it on messages that aren't assistant material? This directory owns the test set and
-the scorer. The runner that drives headless Claude Code against a scratch Claudia instance is
-built later, once the MCP server exists (see docs/ROADMAP.md, task E2).
+A test set, scorer and runner for Claudia's capture skill: does the `claudia` plugin skill call
+`capture` (and `update`/`recall`/`agenda`) correctly on realistic chat messages, and does it
+correctly *not* call it on messages that aren't assistant material? The runner drives headless
+Claude Code against its own scratch Claudia instance per case; nothing here ever touches the real
+vault or the real `~/.claudia`.
 
 ## Files
 
 - `cases.json` — ~40-45 synthetic `EvalCase` records (see `types.ts`).
 - `types.ts` — shared types: `EvalCase`, `ExpectedItem`, `SavedItem`, `CaseRun`.
 - `score.ts` — pure scoring functions: `scoreCase`, `scoreAll`, `formatReport`.
+- `instance.ts` — `startEvalInstance(evalCase)`: a temp `CLAUDIA_HOME` + temp seeded vault, a real
+  HTTP `startService` on an OS-assigned port, an MCP access token minted through the real OAuth
+  store (`src/auth/store.ts`, no bypass), and `savedItems()`/`rulesAdded()` to read back what a
+  case saved.
+- `run.ts` — the CLI (`npm run eval`): for each selected case, starts an instance, writes a
+  per-case `--mcp-config` file, runs headless Claude Code against it, scores the result, and
+  prints/writes a report. See "Running the eval" below.
 - `tests/unit/eval/score.test.ts` — unit tests for the scorer and structural validation of
-  `cases.json` (owned by test-engineer alongside this directory).
+  `cases.json`.
+- `tests/unit/eval/instance.test.ts`, `tests/unit/eval/run.test.ts` — unit tests for the instance
+  wiring (via a real local MCP client, no Claude Code) and for `run.ts`'s CLI parsing, MCP config
+  shape/redaction and resolver wiring. No network beyond loopback, no AI API calls.
 
-Nothing in this directory calls a network or an AI API; `score.ts` is pure functions over data
-you hand it. `cases.json` and `score.ts` are excluded from `vitest`'s normal include path when run
-as an eval (see `vitest.config.ts`'s `tests/eval/**` exclude) but are `import`ed directly by
-`tests/unit/eval/score.test.ts`, which vitest does run.
+`cases.json` and `score.ts` are excluded from `vitest`'s normal include path when run as an eval
+(see `vitest.config.ts`'s `tests/eval/**` exclude) but are `import`ed directly by the unit tests
+above, which vitest does run. `run.ts` and `instance.ts` are only ever invoked directly (`npm run
+eval`, or imported by their unit tests) — never by the vitest suite itself, since a real run costs
+real model calls.
 
-## How the eventual runner will work
+## How the runner works
 
-Each `EvalCase` runs against its own scratch Claudia instance (temp vault, temp `~/.claudia`,
-fake clock pinned to a known `now`, local ntfy stub, no calendar):
+Each `EvalCase` runs against its own scratch Claudia instance (temp vault, temp `CLAUDIA_HOME`,
+the real clock, no ntfy, no calendar):
 
-1. Seed the scratch vault. Apply `case.setup.rules` (if any) via `update` with `action: "add_rule"`
-   so never-save rules are in effect before the message is sent.
-2. Run headless Claude Code with the plugin skill loaded and only the Claudia MCP tools allowed,
-   for example (from docs/KICKOFF.md):
+1. Seed the scratch vault (`seedVault`) and write `case.setup.rules` (if any) straight into
+   `_claudia/Rules.md`, in the exact format `update`'s `add_rule` action produces
+   (`- <text> 🚫 kw1, kw2 ^rXXXX`), *before* the service starts, so never-save rules are already in
+   effect when the message is sent.
+2. Run headless Claude Code with the plugin skill loaded and only the Claudia MCP tools allowed
+   (the exact command `run.ts` uses, from docs/KICKOFF.md):
    ```
    claude -p "<message>" --model claude-sonnet-5 --permission-mode dontAsk \
-     --mcp-config tests/eval/mcp.json --allowedTools "mcp__claudia-eval__*" \
-     --append-system-prompt-file plugin/skills/claudia/SKILL.md
+     --strict-mcp-config --mcp-config <per-case mcp.json> --allowedTools "mcp__claudia-eval__*" \
+     --append-system-prompt-file plugin/skills/claudia/SKILL.md \
+     --append-system-prompt "Surface: Claude Code. Today is <weekday>, <date> and the time is \
+     <HH:mm> in America/Los_Angeles." \
+     --disable-slash-commands --no-session-persistence --output-format json
    ```
-3. Read back everything the case's `capture`/`update` calls actually wrote (via `recall`/`agenda`,
-   or directly from the scratch vault) into a `CaseRun`: the saved items (`SavedItem[]`), how many
-   rules were added, and `startedAt` (the fake `now` the case ran against). A thrown exception,
-   timeout, or MCP-level error becomes `CaseRun.error` instead of a crash.
+   The message is passed verbatim; the surface/date/time line is a *separate*
+   `--append-system-prompt` (confirmed combinable with `--append-system-prompt-file` in the same
+   invocation), since `--disable-slash-commands` means Claude Code never adds its own dynamic
+   date/cwd system-prompt sections. `cwd` is a fresh empty temp directory, so no project CLAUDE.md
+   applies. The process is killed after 180s if it hasn't exited.
+3. Read back everything the case's `capture`/`update` calls actually wrote, straight from the
+   scratch vault's index, into a `CaseRun`: the saved items (`SavedItem[]`), how many rules were
+   added, and `startedAt` (the real `now` the case started against). A missing/erroring `claude`
+   binary, a non-zero exit, or a timeout becomes `CaseRun.error` instead of a crash or a hang.
 4. Feed `cases.json` and the `CaseRun[]` to `scoreAll` from `score.ts`, with a `ScoreOptions` whose
-   `resolveTime`/`resolveDate` are the *real* `src/time/expressions.ts` resolvers (once they
-   exist), so the eval checks the skill against the same time math the server uses. Print
-   `formatReport(report)`.
+   `resolveTime`/`resolveDate` are the *real* `src/time/expressions.ts` resolvers, so the eval
+   checks the skill against the same time math the server uses. Print `formatReport(report)` and
+   write `report.json`/`report.txt` to `tests/eval/results/<runId>/`.
 
 ## Scoring definitions
 
@@ -105,22 +126,35 @@ tomorrow", so the expected time is always at least several hours in the future n
 case runs, even a minute before midnight. Do the same for any new vague-time case: anchor it to
 `tomorrow`, not `today`.
 
-## Running subsets
-
-Once the runner exists, prefer iterating on a handful of cases while developing the skill rather
-than a full run — see the cost note below. A runner should support filtering `cases.json` by
-`id` or `category` (e.g. only `category: "rule"` cases while debugging never-save rules) and
-re-scoring just that subset with `scoreAll`.
-
-Today, without the runner, you can sanity-check the scorer itself and validate `cases.json`'s
-structure with:
+## Running the eval
 
 ```
-npm run test:unit -- tests/unit/eval/score.test.ts
+npm run eval -- --ids personal-01,appt-01           # a couple of specific cases
+npm run eval -- --category rule                     # every case in one category
+npm run eval -- --limit 5                            # the first 5 selected cases
+npm run eval -- --concurrency 2 --model claude-sonnet-5   # override defaults (3, claude-sonnet-5)
+npm run eval                                          # the full set -- see the cost note below
+```
+
+`--ids` takes priority over `--category` if both are given; `--limit` applies after either filter.
+Each run writes `tests/eval/results/<runId>/` (gitignored): a redacted `.log` and a structured
+`.json` per case (saved items, exit code, the parsed `claude --output-format json` result), plus
+`report.json`/`report.txt`. The per-case `--mcp-config` file is written with the bearer token and
+mode `0600`, and deleted again once that case finishes; the token is never written to a `.log` or
+`.json` file (see `redactToken` in `run.ts`). Exit code is 0 when the report's own recall/
+precision/reminder-accuracy/forbidden-word numbers pass, 1 otherwise — a subset run passes or
+fails on its own numbers, independent of the full set.
+
+Without running `claude` at all, sanity-check the scorer, the instance wiring and the CLI itself
+with:
+
+```
+npm run test:unit -- tests/unit/eval
 ```
 
 ## Cost note
 
 Full eval runs (docs/KICKOFF.md, "Testing bar") drive headless Claude Code once per case on the
 owner's Claude plan — that's ~40-45 real model calls per run. Run the full set sparingly (after a
-skill change, before a milestone is called done), and iterate on a small subset while developing.
+skill change, before a milestone is called done), and iterate on a small subset (`--ids`,
+`--category`, `--limit`) while developing.
