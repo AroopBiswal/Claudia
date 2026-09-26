@@ -54,9 +54,9 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 - ☑ **M2-B1 Index and state** (`engine/index.ts`, `engine/state.ts`). SQLite index in `~/.claudia/index.db` with FTS5, rebuild from the vault, per-file reindex, queries for recall, agenda and scheduler; state in `~/.claudia/state.db`. Acceptance: rebuild equals incremental; search ranking; deleting index.db loses nothing.
 - ☑ **M2-B2 Writer, watcher, janitor** (`engine/writer.ts`, `watcher.ts`, `janitor.ts`, `idassign.ts`, `archive.ts`). Acceptance: atomic replace, per-file serialization under concurrency, quiet-period wait with fake clock, edits located by block ID after the file shifted, conflict merge rules, ID assignment only where the contract allows.
 
-### Wave C (after Wave B)
-- ☐ **M3-C1 Write services** (`services/context.ts`, `capture.ts`, `update.ts`, `log.ts`, `calendar/sync.ts`). Capture per docs/tools.md incl. rules and sensitive refusals, duplicates, people notes, follow-up links, appointments, receipts, Log lines, undo journal; every update action incl. repeat completion.
-- ☐ **M6-C2 Read services and generated notes** (`recall.ts`, `agenda.ts`, `notify.ts`, `generated.ts`, `engine/backup.ts`).
+### Wave C (after Wave B) ☑
+- ☑ **M3-C1 Write services** (`services/context.ts`, `capture.ts`, `update.ts`, `log.ts`, `calendar/sync.ts`). Capture per docs/tools.md incl. rules and sensitive refusals, duplicates, people notes, follow-up links, appointments, receipts, Log lines, undo journal; every update action incl. repeat completion.
+- ☑ **M6-C2 Read services and generated notes** (`recall.ts`, `agenda.ts`, `notify.ts`, `generated.ts`, `engine/backup.ts`).
 
 ### Wave D (after Wave C)
 - ☐ **M3-D1 MCP layer and serve** (`http/mcp.ts`, `main.ts`, `cli.ts serve|reindex|seed-vault`). Integration test with the real MCP client over HTTP: 401 discovery, registration, PKCE, token, refresh rotation, then every tool.
@@ -65,7 +65,7 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 ### Wave E (after Wave D)
 - ☐ **E1 End-to-end suite** (test-engineer): scratch vault + fake clock + fake ntfy: capture, file written, index updated, reminder fired, action link completes it, conflict copy merged; repeats and catch-up.
 - ☐ **E2 Capture eval** (test-engineer): `tests/eval/` ~40 synthetic cases, runner using headless Claude Code against a scratch Claudia instance, report recall, precision, reminder-time accuracy.
-- ☐ **M8-E3 Ops** (`ops/install.sh`, launchd plists, ntfy config and setup, `seed-vault`, `smoke`, `ops/go-live.md`, `ops/cloudflared-ingress.yml`).
+- ☑ **M8-E3 Ops** (`ops/install.sh`, launchd plists, ntfy config and setup, `seed-vault`, `smoke`, `ops/go-live.md`, `ops/cloudflared-ingress.yml`).
 
 ### Finish
 - ☐ Eval at target (recall ≥ 90%, precision ≥ 95%, reminder times 100%).
