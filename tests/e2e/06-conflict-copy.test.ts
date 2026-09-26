@@ -67,6 +67,14 @@ describe('e2e: iCloud conflict copy merge', () => {
     // The new line lands right after its nearest preceding neighbor from the copy (idB).
     expect(merged.indexOf('Pack for trip')).toBeGreaterThan(merged.indexOf('Return library book'));
 
+    // The Log line is appended after the copy is removed, so wait for it rather than racing it.
+    await waitFor(
+      () =>
+        e2e
+          .readVault('Log/2026-09-26.md')
+          .then((log) => log.includes('merged conflict copy [[To do]] (Tasks/To do 2.md)')),
+      { timeoutMs: 3000, message: 'the merge was never logged' },
+    );
     const log = await e2e.readVault('Log/2026-09-26.md');
     expect(log).toContain('merged conflict copy [[To do]] (Tasks/To do 2.md)');
 

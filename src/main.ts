@@ -263,6 +263,7 @@ export async function startService(
   // --- vault watcher: reindex changed notes, merge iCloud conflict copies, assign missing ids ---
 
   async function onChanges(paths: string[]): Promise<void> {
+    if (stopped) return;
     const conflictPaths = paths.filter((p) => conflictCopyBase(p) !== null);
     const normalPaths = paths.filter((p) => conflictCopyBase(p) === null);
 
@@ -301,6 +302,7 @@ export async function startService(
   }
 
   async function onRescan(): Promise<void> {
+    if (stopped) return;
     await index.refresh();
     const reports = await runJanitor({ vaultDir: config.vaultPath, writer });
     for (const report of reports) {
