@@ -1,0 +1,8 @@
+dist/
+coverage/
+node_modules/
+ignore/
+.claude/worktrees/
+tests/eval/results/
+package-lock.json
+*.md

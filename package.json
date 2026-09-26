@@ -1,0 +1,42 @@
+{
+  "name": "claudia",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal-assistant layer for Claude: MCP server, Obsidian vault source of truth, and Claude plugin.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vitest run tests/e2e",
+    "build": "tsc -p tsconfig.build.json",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "dev": "node src/cli.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "express": "^5.2.1",
+    "jose": "^6.2.12",
+    "luxon": "^3.7.2",
+    "rrule": "^2.8.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/luxon": "^3.7.5",
+    "@types/node": "^24.19.0",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.9",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.2"
+  }
+}

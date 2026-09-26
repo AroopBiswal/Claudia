@@ -8,6 +8,15 @@ Personal-assistant layer for Claude: an MCP server on this Mac mini, an Obsidian
 
 ## Commands
 - `npm run verify`: typecheck, lint, all tests, build. Must pass before every push (the pre-push hook enforces it).
+- `npm run typecheck`: tsc --noEmit across src, tests, scripts, watchdog and plugin.
+- `npm run lint`: eslint plus a prettier format check.
+- `npm run format`: prettier --write on the whole repo.
+- `npm run test`: run the full vitest suite.
+- `npm run test:unit`: vitest run against tests/unit only.
+- `npm run test:integration`: vitest run against tests/integration only.
+- `npm run test:e2e`: vitest run against tests/e2e only.
+- `npm run build`: compile src to dist with tsconfig.build.json.
+- `npm run dev`: run src/cli.ts directly via Node's type stripping.
 - Keep this section current as scripts are added.
 
 ## Hard rules
