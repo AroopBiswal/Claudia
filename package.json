@@ -18,7 +18,8 @@
     "build": "tsc -p tsconfig.build.json",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
     "dev": "node src/cli.ts",
-    "plugin:pack": "node scripts/pack-plugin.ts"
+    "plugin:pack": "node scripts/pack-plugin.ts",
+    "smoke": "node scripts/smoke.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.1",

@@ -1,0 +1,42 @@
+# Cloudflare Tunnel ingress SNIPPET for Claudia (docs/DECISIONS.md B16).
+#
+# This is NOT a full cloudflared config and is NOT applied by any script in
+# this repo. It must be merged BY HAND into the existing tunnel config on
+# this Mac mini (typically ~/.cloudflared/config.yml), which already routes
+# other hostnames for the Bull and Bear services running on this machine.
+# Never touch ~/.cloudflared directly from automation; see ops/go-live.md
+# step 1 for the exact manual steps.
+#
+# How to merge:
+#   1. Open the existing tunnel config (the one referenced by the running
+#      `cloudflared tunnel run <name>` / cloudflared launchd job).
+#   2. Copy the two `hostname:` blocks below into that file's `ingress:`
+#      list, ABOVE every other hostname rule but ABOVE ALL, before the
+#      existing catch-all `- service: http_status:404` (or whatever
+#      catch-all service is last). Ingress rules are matched top-to-bottom,
+#      first match wins, so the catch-all must stay last.
+#   3. Do not remove, reorder or edit any of the existing hostname entries
+#      for Bull, Bear or anything else already in that file.
+#   4. Restart the existing cloudflared service so it picks up the change
+#      (see ops/go-live.md step 1 for the exact command) — do not create a
+#      second cloudflared process or a second tunnel.
+#
+# --- snippet to insert into the existing `ingress:` list, before the catch-all ---
+- hostname: claudia.aroopbiswal.com
+  service: http://127.0.0.1:8787
+- hostname: ntfy.aroopbiswal.com
+  service: http://127.0.0.1:8790
+# --- end snippet ---
+#
+# After this, `ingress:` in the real config looks something like:
+#
+# ingress:
+#   - hostname: bull.aroopbiswal.com
+#     service: http://127.0.0.1:XXXX      # existing, untouched
+#   - hostname: bear.aroopbiswal.com
+#     service: http://127.0.0.1:YYYY      # existing, untouched
+#   - hostname: claudia.aroopbiswal.com
+#     service: http://127.0.0.1:8787      # added by this snippet
+#   - hostname: ntfy.aroopbiswal.com
+#     service: http://127.0.0.1:8790      # added by this snippet
+#   - service: http_status:404            # catch-all, must stay last

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent template for the Claudia server itself (docs/DECISIONS.md B1:
+  runs on the Developer ID signed Node 24 binary at ~/.claudia/runtime/bin/node,
+  not Homebrew's node, so the one-time Full Disk Access grant survives upgrades).
+
+  Placeholders, substituted by ops/install.sh:
+    {{NODE}}      absolute path to the runtime node binary (~/.claudia/runtime/bin/node)
+    {{APP}}       the current release directory (~/.claudia/app/current), whose
+                  dist/cli.js is the entry point
+    {{HOME_DIR}}  Claudia's home directory (~/.claudia), used for CLAUDIA_HOME,
+                  the working directory and the log files
+
+  Not installed or loaded directly; ops/install.sh renders this into
+  ~/Library/LaunchAgents/com.aroop.claudia.plist and bootstraps it.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.aroop.claudia</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{NODE}}</string>
+      <string>{{APP}}/dist/cli.js</string>
+      <string>serve</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>CLAUDIA_HOME</key>
+      <string>{{HOME_DIR}}</string>
+      <key>NODE_ENV</key>
+      <string>production</string>
+    </dict>
+
+    <key>WorkingDirectory</key>
+    <string>{{HOME_DIR}}</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>ProcessType</key>
+    <string>Standard</string>
+
+    <key>StandardOutPath</key>
+    <string>{{HOME_DIR}}/logs/claudia.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{HOME_DIR}}/logs/claudia.log</string>
+  </dict>
+</plist>
