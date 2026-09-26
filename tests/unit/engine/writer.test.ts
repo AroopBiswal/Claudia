@@ -457,3 +457,28 @@ describe('createVaultWriter: onWritten', () => {
     });
   });
 });
+
+describe('quiet period with a skewed clock', () => {
+  it('does not stall when the file mtime is ahead of the clock', async () => {
+    const fsp = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const dir = await fsp.mkdtemp(path.join(os.tmpdir(), 'claudia-writer-skew-'));
+    await fsp.writeFile(path.join(dir, 'a.md'), '- [ ] one ^t0001\n');
+    const slept: number[] = [];
+    const w = createVaultWriter({
+      vaultDir: dir,
+      now: () => new Date('2020-01-01T00:00:00Z'),
+      sleep: (ms) => {
+        slept.push(ms);
+        return Promise.resolve();
+      },
+      quietMs: 3000,
+    });
+    await w.append('a.md', ['- [ ] two ^t0002']);
+    expect(slept).toEqual([]);
+    expect(await fsp.readFile(path.join(dir, 'a.md'), 'utf8')).toBe(
+      '- [ ] one ^t0001\n- [ ] two ^t0002\n',
+    );
+  });
+});

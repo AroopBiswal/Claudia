@@ -145,7 +145,8 @@ export function createVaultWriter(opts: CreateVaultWriterOptions): VaultWriter {
   }
 
   async function waitForQuiet(full: string, relPath: string): Promise<void> {
-    const start = now().getTime();
+    if (quietMs <= 0) return;
+    let waited = 0;
     for (;;) {
       let st;
       try {
@@ -156,11 +157,14 @@ export function createVaultWriter(opts: CreateVaultWriterOptions): VaultWriter {
       const own = ownWrites.get(relPath);
       if (own && own.mtimeMs === st.mtimeMs && own.size === st.size) return;
       const age = now().getTime() - st.mtimeMs;
-      if (age >= quietMs) return;
-      const elapsed = now().getTime() - start;
-      if (elapsed >= maxWaitMs) return;
-      const waitMs = Math.max(1, Math.min(quietMs - age, maxWaitMs - elapsed));
+      // A modification time in the future (another device's clock, or a test clock) can't be
+      // reasoned about; don't stall on it. The wait is bounded by time actually slept, not by
+      // the clock, so a clock that doesn't move can never hang a write.
+      if (age < -1000 || age >= quietMs) return;
+      if (waited >= maxWaitMs) return;
+      const waitMs = Math.max(1, Math.min(quietMs - age, maxWaitMs - waited));
       await sleep(waitMs);
+      waited += waitMs;
     }
   }
 
