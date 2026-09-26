@@ -17,15 +17,9 @@ You granted the Claudia runtime (`~/.claudia/runtime/bin/node`) access to the va
 5. Make sure Time Machine is on (System Settings → General → Time Machine). Claudia also keeps nightly vault snapshots in `~/.claudia/backups` for 30 days.
 6. Optional: a small UPS for the Mac mini and router.
 
-## 3. Go live on claudia.aroopbiswal.com
+## 3. Go live on claudia.aroopbiswal.com — done
 
-Follow `ops/go-live.md` sections 1 to 6. In short:
-1. Merge `ops/cloudflared-ingress.yml` into your existing cloudflared config (above the catch-all) and restart cloudflared.
-2. `cloudflared tunnel route dns <your tunnel> claudia.aroopbiswal.com` and `cloudflared tunnel route dns <your tunnel> ntfy.aroopbiswal.com`.
-3. Cloudflare Zero Trust → Access: self-hosted app for `claudia.aroopbiswal.com`, one-time PIN, Allow only your email, 30-day sessions. Bypass for `/mcp`, `/.well-known/*`, `/oauth/token`, `/oauth/register`, `/oauth/revoke`, `/health`, `/a/*`. Keep `/oauth/authorize` and `/oauth/approve` behind Access.
-4. WAF custom rule: Skip bot protection for those machine paths on `claudia.aroopbiswal.com`.
-5. Put the Access app's AUD tag, your team domain (`<team>.cloudflareaccess.com`) and your email into `~/.claudia/config.json` (`access.audience`, `access.teamDomain`, `ownerEmail`), then `launchctl kickstart -k gui/$(id -u)/com.aroop.claudia`.
-6. Checks: `curl -s https://claudia.aroopbiswal.com/health` → `"status":"ok"`; `curl -si -X POST https://claudia.aroopbiswal.com/mcp | grep -i www-authenticate` → `Bearer resource_metadata=…`; opening `https://claudia.aroopbiswal.com/oauth/authorize` in a browser asks for the email code.
+Done 2026-09-26: Claudia's own tunnel (`com.aroop.claudia.tunnel`), DNS for `claudia.aroopbiswal.com` and `ntfy.aroopbiswal.com`, the Access app with bypass paths, the WAF skip rule, and the Access values in `~/.claudia/config.json`. Checks passed: public `/health` ok, `POST /mcp` answers 401 with `WWW-Authenticate: Bearer resource_metadata=…`, `/oauth/authorize` asks for the email code, ntfy is reachable and refuses anonymous publishing. To redo it, see `ops/go-live.md`.
 
 ## 4. Deploy the watchdog
 
