@@ -143,7 +143,7 @@ async function runReminders(ctx: ClaudiaContext, report: TickReport): Promise<vo
     const late = nowDate.getTime() - p.fireInstant.getTime() > LATE_MS;
     const push = reminderPush({
       id: p.id,
-      text: p.item.text,
+      text: plainText(p.item.text),
       notePath: p.item.path,
       fireLocal: p.effective,
       vaultName: ctx.vaultName,
@@ -169,7 +169,7 @@ async function runReminders(ctx: ClaudiaContext, report: TickReport): Promise<vo
     const shown = bundle.slice(0, MAX_BUNDLE_ITEMS);
     const extra = bundle.length - shown.length;
     const push = bundlePush({
-      items: shown.map((p) => ({ id: p.id, text: p.item.text, fireLocal: p.effective })),
+      items: shown.map((p) => ({ id: p.id, text: plainText(p.item.text), fireLocal: p.effective })),
       vaultName: ctx.vaultName,
     });
     if (extra > 0) push.message += `\nand ${extra} more.`;
