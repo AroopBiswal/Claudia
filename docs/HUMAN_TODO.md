@@ -4,16 +4,9 @@ Steps only you can do: dashboards, your phone, passwords, sudo and account conse
 
 Paths below assume the defaults: Claudia's home is `~/.claudia`, the vault is `~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Claudia`, and the installed CLI is `~/.claudia/runtime/bin/node ~/.claudia/app/current/dist/cli.js`.
 
-## 1. Let the Claudia service read the vault (blocks the installed service)
+## 1. Let the Claudia service read the vault — done
 
-macOS blocks background (launchd) programs from iCloud Drive until you allow them. Claudia's service runs on its own signed Node binary so the permission survives upgrades (docs/DECISIONS.md B1).
-
-1. Open System Settings → Privacy & Security → Full Disk Access.
-2. Click **+**, enter your password, press ⌘⇧G, paste `~/.claudia/runtime/bin/node`, press Return, then **Open**.
-3. Make sure the new **node** entry is switched on.
-4. Restart the service: `launchctl kickstart -k gui/$(id -u)/com.aroop.claudia`
-5. Check: `curl -s http://127.0.0.1:8787/health` shows `"status":"ok"` and `"path_ok":true`.
-6. Then run the local smoke test: `cd ~/Code/GitHub/Claudia && npm run smoke` (ends with `SMOKE TEST PASSED`).
+You granted the Claudia runtime (`~/.claudia/runtime/bin/node`) access to the vault on 2026-09-26; `/health` reports `"status":"ok"` and `npm run smoke` passes against the installed service. If Claudia ever reports `"path_ok":false` again (for example after replacing that binary), open System Settings → Privacy & Security → Full Disk Access, make sure **node** at `~/.claudia/runtime/bin/node` is listed and on, then run `launchctl kickstart -k gui/$(id -u)/com.aroop.claudia`.
 
 ## 2. Keep the Mac mini awake, restarting and synced
 

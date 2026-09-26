@@ -69,8 +69,8 @@ Rules for every module: dependencies are injected (clock, fetch, paths, stores),
 
 ### Finish
 - ☑ Eval at target (recall ≥ 90%, precision ≥ 95%, reminder times 100%): 100% / 96.6% / 100%.
-- ◐ Install on this Mac mini (done); smoke test through launchd waits on the Full Disk Access grant (HUMAN_TODO 1).
-- ☐ HUMAN_TODO complete; push; CI green; Notion Build Tasks updated.
+- ☑ Install on this Mac mini; smoke test through launchd, local ntfy and the signed Done link passes.
+- ☑ HUMAN_TODO complete; push; CI green; Notion Build Tasks updated (Done, or In Review pointing to HUMAN_TODO).
 
 ## Task brief template
 
