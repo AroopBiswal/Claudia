@@ -1,0 +1,7 @@
+{
+  "name": "claudia",
+  "version": "0.1.0",
+  "description": "Personal-assistant memory: capture commitments, reminders, appointments, people and facts to an Obsidian vault, silently.",
+  "author": { "name": "Aroop Biswal" },
+  "homepage": "https://github.com/AroopBiswal/Claudia"
+}

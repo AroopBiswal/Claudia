@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "claudia": {
+      "type": "http",
+      "url": "https://claudia.aroopbiswal.com/mcp"
+    }
+  }
+}
