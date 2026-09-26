@@ -1,0 +1,18 @@
+name = "claudia-watchdog"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+HEALTH_URL = "https://claudia.aroopbiswal.com/health"
+
+# ALERT_TOPIC_URL is a secret, not a var, so the ntfy topic name never lands
+# in git (anyone who knows the topic can subscribe to it). Set it with:
+#   wrangler secret put ALERT_TOPIC_URL
+# See README.md for the full go-live steps.
+
+[[kv_namespaces]]
+binding = "STATE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
