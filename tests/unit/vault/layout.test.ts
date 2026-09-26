@@ -124,3 +124,14 @@ describe('conflictCopyBase', () => {
     expect(conflictCopyBase('Tasks/Chapter 2.md')).toBe('Tasks/Chapter.md');
   });
 });
+
+describe('wikiLink labels with inner links', () => {
+  it('unwraps inner wiki links instead of leaving dangling brackets', () => {
+    expect(wikiLink('Tasks/Follow-ups.md', 't4m1q', 'Waiting on [[Alex]]: resume draft')).toBe(
+      '[[Follow-ups#^t4m1q|Waiting on Alex: resume draft]]',
+    );
+    expect(wikiLink('Tasks/Follow-ups.md', 't4m2w', 'Send [[Alex|Al]] the link')).toBe(
+      '[[Follow-ups#^t4m2w|Send Al the link]]',
+    );
+  });
+});

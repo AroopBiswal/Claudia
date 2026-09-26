@@ -44,6 +44,11 @@ export function noteBasename(path: string): string {
 }
 
 function cleanLinkLabel(label: string): string {
+  // Unwrap inner wiki links first ([[Alex]] → Alex, [[Alex|Al]] → Al) so no dangling brackets remain.
+  label = label.replace(
+    /\[\[([^\]|#]*)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]/g,
+    (_m, target: string, alias?: string) => alias ?? target,
+  );
   return label.replace(/\r\n|\r|\n/g, ' ').replace(/[|\]]/g, '');
 }
 
