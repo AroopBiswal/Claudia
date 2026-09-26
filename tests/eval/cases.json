@@ -1,0 +1,361 @@
+[
+  {
+    "id": "personal-01",
+    "category": "personal",
+    "message": "Remind me to call the dentist Tuesday at 9am to reschedule my cleaning.",
+    "expect": [{ "kind": "task", "match": ["dentist"], "remind": "tuesday 09:00" }]
+  },
+  {
+    "id": "personal-02",
+    "category": "personal",
+    "message": "Remind me tomorrow morning to water the plants before I leave for work.",
+    "expect": [{ "kind": "task", "match": ["water", "plants"], "remind": "tomorrow 09:00" }],
+    "notes": "vague time default: morning -> 09:00. Anchored to tomorrow so it never breaks depending on when the eval runs today."
+  },
+  {
+    "id": "personal-03",
+    "category": "personal",
+    "message": "Can you remind me tomorrow afternoon to pick up the dry cleaning on Elm Street.",
+    "expect": [{ "kind": "task", "match": ["dry", "clean"], "remind": "tomorrow 14:00" }],
+    "notes": "vague time default: afternoon -> 14:00."
+  },
+  {
+    "id": "personal-04",
+    "category": "personal",
+    "message": "Remind me tomorrow evening to take out the recycling bins.",
+    "expect": [{ "kind": "task", "match": ["recycling"], "remind": "tomorrow 18:00" }],
+    "notes": "vague time default: evening -> 18:00."
+  },
+  {
+    "id": "personal-05",
+    "category": "personal",
+    "message": "Remind me to send the invoice by end of day tomorrow.",
+    "expect": [{ "kind": "task", "match": ["invoice"], "remind": "tomorrow 17:00" }],
+    "notes": "vague time default: end of day -> 17:00."
+  },
+  {
+    "id": "personal-06",
+    "category": "personal",
+    "message": "Remind me in 2 hours to take the chicken out of the oven.",
+    "expect": [
+      {
+        "kind": "task",
+        "match": ["chicken", "oven"],
+        "remind": "+2h",
+        "remindToleranceMin": 3
+      }
+    ]
+  },
+  {
+    "id": "personal-07",
+    "category": "personal",
+    "message": "I should renew my passport before Friday, can you keep track of that for me.",
+    "expect": [{ "kind": "task", "match": ["passport"], "due": "friday" }]
+  },
+  {
+    "id": "personal-08",
+    "category": "personal",
+    "message": "Remind me every Sunday evening to prep meals for the week.",
+    "expect": [
+      {
+        "kind": "task",
+        "match": ["prep", "meals"],
+        "remind": "sunday 18:00",
+        "repeat": "week"
+      }
+    ]
+  },
+  {
+    "id": "appt-01",
+    "category": "appointment",
+    "message": "I have a dentist appointment Tuesday at 3pm.",
+    "expect": [{ "kind": "appointment", "match": ["dentist"], "appointmentStart": "tuesday 15:00" }]
+  },
+  {
+    "id": "appt-02",
+    "category": "appointment",
+    "message": "My flight leaves Friday at 6:40am, I need to be at the airport with time to spare.",
+    "expect": [{ "kind": "appointment", "match": ["flight"], "appointmentStart": "friday 06:40" }]
+  },
+  {
+    "id": "appt-03",
+    "category": "appointment",
+    "message": "I booked a haircut for next Thursday at 11am.",
+    "expect": [
+      { "kind": "appointment", "match": ["haircut"], "appointmentStart": "next thursday 11:00" }
+    ]
+  },
+  {
+    "id": "appt-04",
+    "category": "appointment",
+    "message": "We have a dinner reservation Saturday at 7:30pm.",
+    "expect": [{ "kind": "appointment", "match": ["dinner"], "appointmentStart": "saturday 19:30" }]
+  },
+  {
+    "id": "followup-01",
+    "category": "follow_up",
+    "message": "I'm still waiting on Alex to send over his resume draft.",
+    "expect": [
+      {
+        "kind": "follow_up",
+        "match": ["resume"],
+        "person": "Alex",
+        "direction": "waiting"
+      }
+    ]
+  },
+  {
+    "id": "followup-02",
+    "category": "follow_up",
+    "message": "I promised Sam I'd send the referral link by Wednesday.",
+    "expect": [
+      {
+        "kind": "follow_up",
+        "match": ["referral"],
+        "person": "Sam",
+        "direction": "promised",
+        "due": "wednesday"
+      }
+    ]
+  },
+  {
+    "id": "followup-03",
+    "category": "follow_up",
+    "message": "I'm still waiting to hear back from the landlord about the lease renewal.",
+    "expect": [
+      {
+        "kind": "follow_up",
+        "match": ["lease"],
+        "person": "landlord",
+        "direction": "waiting"
+      }
+    ]
+  },
+  {
+    "id": "followup-04",
+    "category": "follow_up",
+    "message": "I told Mom I'd send her the photos from the trip.",
+    "expect": [
+      {
+        "kind": "follow_up",
+        "match": ["photos"],
+        "person": "Mom",
+        "direction": "promised"
+      }
+    ]
+  },
+  {
+    "id": "people-01",
+    "category": "people",
+    "message": "My sister Priya just moved to Denver.",
+    "expect": [{ "kind": "fact", "match": ["denver"], "person": "Priya" }]
+  },
+  {
+    "id": "people-02",
+    "category": "people",
+    "message": "Jordan is allergic to peanuts, just so you know for the barbecue.",
+    "expect": [{ "kind": "fact", "match": ["peanut"], "person": "Jordan" }]
+  },
+  {
+    "id": "people-03",
+    "category": "people",
+    "message": "Alex's birthday is March 3rd.",
+    "expect": [{ "kind": "fact", "match": ["birthday", "march"], "person": "Alex" }]
+  },
+  {
+    "id": "people-04",
+    "category": "people",
+    "message": "My manager is Dana, in case that ever comes up.",
+    "expect": [{ "kind": "fact", "match": ["manager"], "person": "Dana" }]
+  },
+  {
+    "id": "profile-01",
+    "category": "profile",
+    "message": "I'm vegetarian, just so you remember for restaurant recommendations.",
+    "expect": [{ "kind": "fact", "match": ["vegetarian"] }]
+  },
+  {
+    "id": "profile-02",
+    "category": "profile",
+    "message": "I moved to Oakland last month.",
+    "expect": [{ "kind": "fact", "match": ["oakland"] }]
+  },
+  {
+    "id": "profile-03",
+    "category": "profile",
+    "message": "I prefer aisle seats when I'm booking flights.",
+    "expect": [{ "kind": "fact", "match": ["aisle"] }],
+    "notes": "profile fact under topic Travel; ExpectedItem has no topic field so only the text words are checked."
+  },
+  {
+    "id": "coding-01",
+    "category": "coding",
+    "message": "Why am I getting a TypeScript error saying 'Property does not exist on type X'?",
+    "expect": []
+  },
+  {
+    "id": "coding-02",
+    "category": "coding",
+    "message": "Can you refactor this function to use async/await instead of callbacks?",
+    "expect": []
+  },
+  {
+    "id": "coding-03",
+    "category": "coding",
+    "message": "Remember this repo uses pnpm workspaces, not npm, when you suggest install commands.",
+    "expect": [],
+    "forbid": ["pnpm"],
+    "notes": "Framed as coding context, not a personal fact for Claudia -- must not leak into Memory."
+  },
+  {
+    "id": "coding-04",
+    "category": "coding",
+    "message": "Can you explain what `git rebase -i HEAD~3` does?",
+    "expect": []
+  },
+  {
+    "id": "mixed-01",
+    "category": "mixed",
+    "message": "I need to ship this PR before my flight Friday.",
+    "expect": [{ "kind": "task", "match": ["ship", "pr"], "due": "friday" }],
+    "notes": "Coding-adjacent chat, but a real personal deadline -- content decides, not the surface."
+  },
+  {
+    "id": "learning-01",
+    "category": "learning",
+    "message": "Explain how a Bloom filter works.",
+    "expect": []
+  },
+  {
+    "id": "learning-02",
+    "category": "learning",
+    "message": "What's the difference between TCP and UDP?",
+    "expect": []
+  },
+  {
+    "id": "learning-03",
+    "category": "learning",
+    "message": "Can you walk me through how gradient descent converges?",
+    "expect": []
+  },
+  {
+    "id": "learning-04",
+    "category": "learning",
+    "message": "Teach me the basics of Rust's borrow checker.",
+    "expect": []
+  },
+  {
+    "id": "voice-01",
+    "category": "voice",
+    "message": "okay so I need to call the vet tomorrow at ten and also remind me to pick up milk on the way home",
+    "expect": [
+      { "kind": "task", "match": ["vet"], "remind": "tomorrow 10:00" },
+      { "kind": "task", "match": ["milk"] }
+    ],
+    "notes": "run-on voice message with two separate items, one with a time and one vague."
+  },
+  {
+    "id": "voice-02",
+    "category": "voice",
+    "message": "claudia remind me in 20 minutes to take the laundry out",
+    "expect": [
+      {
+        "kind": "task",
+        "match": ["laundry"],
+        "remind": "+20m",
+        "remindToleranceMin": 3
+      }
+    ]
+  },
+  {
+    "id": "voice-03",
+    "category": "voice",
+    "message": "hey claudia what's on my plate today",
+    "expect": [],
+    "notes": "an agenda question, not something to capture."
+  },
+  {
+    "id": "voice-04",
+    "category": "voice",
+    "message": "um so like I really need to, uh, remember to text Mike back sometime tomorrow evening okay",
+    "expect": [{ "kind": "task", "match": ["mike", "text"], "remind": "tomorrow 18:00" }],
+    "notes": "filler-word heavy phrasing around a vague-evening reminder."
+  },
+  {
+    "id": "nosave-01",
+    "category": "nosave",
+    "message": "I'm so tired today, I barely slept.",
+    "expect": []
+  },
+  {
+    "id": "nosave-02",
+    "category": "nosave",
+    "message": "It's supposed to rain all weekend, kind of annoying.",
+    "expect": []
+  },
+  {
+    "id": "nosave-03",
+    "category": "nosave",
+    "message": "I've been thinking, what if I moved to Portland someday?",
+    "expect": [],
+    "notes": "hypothetical, not a commitment."
+  },
+  {
+    "id": "nosave-04",
+    "category": "nosave",
+    "message": "My friend's cousin just got a new job at some startup.",
+    "expect": [],
+    "notes": "not the owner's own life; nothing to save."
+  },
+  {
+    "id": "rule-01",
+    "category": "rule",
+    "message": "Remind me about my therapist appointment on Thursday at 4pm.",
+    "setup": {
+      "rules": [
+        {
+          "text": "Nothing about my therapy sessions",
+          "keywords": ["therapy", "therapist", "counseling"]
+        }
+      ]
+    },
+    "expect": [],
+    "forbid": ["therapist"]
+  },
+  {
+    "id": "rule-02",
+    "category": "rule",
+    "message": "Remind me to pick up dog food Thursday at 5pm too.",
+    "setup": {
+      "rules": [
+        {
+          "text": "Nothing about my therapy sessions",
+          "keywords": ["therapy", "therapist", "counseling"]
+        }
+      ]
+    },
+    "expect": [{ "kind": "task", "match": ["dog", "food"], "remind": "thursday 17:00" }],
+    "notes": "same setup as rule-01, but an unrelated message must still save normally."
+  },
+  {
+    "id": "rule-03",
+    "category": "rule",
+    "message": "Please don't save anything about my health stuff from now on.",
+    "expect": [],
+    "notes": "expects update.add_rule to be called instead of a capture; the scorer reports run.rulesAdded separately and there is no per-case target for it."
+  },
+  {
+    "id": "sensitive-01",
+    "category": "sensitive",
+    "message": "My bank account number is 4471002983, in case I ever need to read it back to you.",
+    "expect": [],
+    "forbid": ["4471002983"]
+  },
+  {
+    "id": "sensitive-02",
+    "category": "sensitive",
+    "message": "The code for my gym locker is 8823.",
+    "expect": [],
+    "forbid": ["8823"]
+  }
+]
