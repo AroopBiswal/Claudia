@@ -65,6 +65,36 @@ describe('parseLine', () => {
     expect(p.description).toBe('Nothing about my therapy sessions');
   });
 
+  it('parses a date-and-time ➕ on a fact line without leaking the time into the description', () => {
+    const p = parseLine('- Prefers aisle seats ⌛ 2026-12-01 ➕ 2026-10-04 14:32 ^f1a2b');
+    expect(p.isTask).toBe(false);
+    expect(p.fields.created).toBe('2026-10-04 14:32');
+    expect(p.fields.expires).toBe('2026-12-01');
+    expect(p.description).toBe('Prefers aisle seats');
+    expect(p.blockId).toBe('f1a2b');
+  });
+
+  it('parses a date-and-time ➕ on a line with odd spacing', () => {
+    const p = parseLine('-   Likes\tjazz  \t ➕ 2026-10-04 14:32\t  ^f1a2b  ');
+    expect(p.fields.created).toBe('2026-10-04 14:32');
+    expect(p.description).toBe('Likes\tjazz');
+    expect(p.blockId).toBe('f1a2b');
+  });
+
+  it('still parses a date-only ➕ exactly as before', () => {
+    const p = parseLine(
+      '- [ ] Waiting on [[Alex]]: reply #waiting ➕ 2026-10-04 📅 2026-10-09 ^t1a1a',
+    );
+    expect(p.fields.created).toBe('2026-10-04');
+    expect(p.fields.due).toBe('2026-10-09');
+    expect(p.description).toBe('Waiting on [[Alex]]: reply #waiting');
+  });
+
+  it('does not take an out-of-range time as part of ➕', () => {
+    const p = parseLine('- Likes jazz ➕ 2026-10-04 25:99 ^f1a2b');
+    expect(p.fields.created).toBe('2026-10-04');
+  });
+
   it('keeps trailing non-field text after a valid date value as description, in place', () => {
     const p = parseLine('- [ ] 📅 2026-10-01 party ^t1a1a');
     expect(p.fields.due).toBe('2026-10-01');
@@ -123,6 +153,20 @@ describe('isValidFieldValue', () => {
     expect(isValidFieldValue('due', 'not-a-date')).toBe(false);
   });
 
+  it('validates ➕ as a date or a date and time', () => {
+    expect(isValidFieldValue('created', '2026-10-04')).toBe(true);
+    expect(isValidFieldValue('created', '2026-10-04 14:32')).toBe(true);
+    expect(isValidFieldValue('created', '2026-10-04 00:00')).toBe(true);
+    expect(isValidFieldValue('created', '2026-10-04 23:59')).toBe(true);
+    expect(isValidFieldValue('created', '2026-10-04 25:99')).toBe(false);
+    expect(isValidFieldValue('created', '2026-10-04 24:00')).toBe(false);
+    expect(isValidFieldValue('created', '2026-10-04 14:60')).toBe(false);
+    expect(isValidFieldValue('created', '2026-10-04 9:05')).toBe(false);
+    expect(isValidFieldValue('created', '2026-10-04 14:32-15:00')).toBe(false);
+    // Other date-only fields stay date-only.
+    expect(isValidFieldValue('due', '2026-10-04 14:32')).toBe(false);
+  });
+
   it('validates datetime fields', () => {
     expect(isValidFieldValue('reminder', '2026-09-29 09:00')).toBe(true);
     expect(isValidFieldValue('reminder', '2026-09-29')).toBe(false);
@@ -170,6 +214,24 @@ describe('setField / removeField / setStatus / setBlockId / setDescription surgi
     const raw = '- [ ]  Laundry   ⏰ 2026-09-27 19:00  🔁 every week on Sunday  ^t2b7m';
     const updated = removeField(raw, 'reminder');
     expect(updated).toBe('- [ ]  Laundry    🔁 every week on Sunday  ^t2b7m');
+  });
+
+  it('round trips a datetime ➕ through setField and removeField byte-exact', () => {
+    const raw = '-  Likes   jazz  ⌛ 2026-12-01\t➕ 2026-10-04 14:32  ^f1a2b';
+    expect(setField(raw, 'created', '2026-10-05 09:01')).toBe(
+      '-  Likes   jazz  ⌛ 2026-12-01\t➕ 2026-10-05 09:01  ^f1a2b',
+    );
+    expect(setField(raw, 'created', '2026-10-04 14:32')).toBe(raw);
+    expect(removeField(raw, 'created')).toBe('-  Likes   jazz  ⌛ 2026-12-01  ^f1a2b');
+    // Adding it goes after ⌛ and before the block id.
+    expect(setField('- Likes jazz ⌛ 2026-12-01 ^f1a2b', 'created', '2026-10-04 14:32')).toBe(
+      '- Likes jazz ⌛ 2026-12-01 ➕ 2026-10-04 14:32 ^f1a2b',
+    );
+    // Switching a date-only ➕ to a datetime and back leaves other bytes alone.
+    const dateOnly = '- [ ] Ask Alex #waiting ➕ 2026-10-04 📅 2026-10-09 ^t1a1a';
+    expect(setField(dateOnly, 'created', '2026-10-04 14:32')).toBe(
+      '- [ ] Ask Alex #waiting ➕ 2026-10-04 14:32 📅 2026-10-09 ^t1a1a',
+    );
   });
 
   it('removeField is a no-op when the field is absent', () => {
@@ -285,6 +347,22 @@ describe('renderItemLine canonical examples', () => {
     const parsed = parseLine(line);
     expect(parsed.isTask).toBe(false);
     expect(parsed.fields.expires).toBe('2026-10-15');
+    expect(parsed.blockId).toBe('f5r8e');
+  });
+
+  it('renders a fact with expiry and a datetime ➕ in canonical order', () => {
+    const line = renderItemLine({
+      task: false,
+      description: 'Staying in Lisbon until mid October',
+      fields: { created: '2026-10-04 14:32', expires: '2026-10-15' },
+      blockId: 'f5r8e',
+    });
+    expect(line).toBe(
+      '- Staying in Lisbon until mid October ⌛ 2026-10-15 ➕ 2026-10-04 14:32 ^f5r8e',
+    );
+    const parsed = parseLine(line);
+    expect(parsed.fields).toEqual({ expires: '2026-10-15', created: '2026-10-04 14:32' });
+    expect(parsed.description).toBe('Staying in Lisbon until mid October');
     expect(parsed.blockId).toBe('f5r8e');
   });
 

@@ -22,7 +22,13 @@ const FILES = {
     '- [ ] Waiting on [[Alex]]: resume draft #waiting ➕ 2026-09-20 📅 2026-10-02 ^t4m1q',
     '',
   ].join('\n'),
-  'People/Alex.md': ['# Alex', '', '- Friend from college ^f1a9z', ''].join('\n'),
+  'People/Alex.md': [
+    '# Alex',
+    '',
+    '- Friend from college ^f1a9z',
+    '- Plays cello ➕ 2026-09-25 18:30 ^f1a9y',
+    '',
+  ].join('\n'),
 };
 
 describe('recall', () => {
@@ -72,6 +78,21 @@ describe('recall', () => {
     const byPerson = recall(t.ctx, { query: '', person: 'Alex' });
     if ('error' in byPerson) throw new Error('unexpected error');
     expect(byPerson.total).toBeGreaterThanOrEqual(2); // the follow-up and the fact
+  });
+
+  it('returns created so callers see when a fact was saved', async () => {
+    t = await makeTestContext({ files: FILES });
+    const cello = recall(t.ctx, { query: 'cello' });
+    if ('error' in cello) throw new Error('unexpected error');
+    expect(cello.results[0]).toMatchObject({ kind: 'fact', created: '2026-09-25 18:30' });
+
+    const old = recall(t.ctx, { query: 'college' });
+    if ('error' in old) throw new Error('unexpected error');
+    expect(old.results[0]?.created).toBeNull();
+
+    const followUp = recall(t.ctx, { query: 'draft' });
+    if ('error' in followUp) throw new Error('unexpected error');
+    expect(followUp.results[0]?.created).toBe('2026-09-20');
   });
 
   it('rejects an empty query without a person', async () => {

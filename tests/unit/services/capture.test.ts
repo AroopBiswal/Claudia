@@ -264,7 +264,7 @@ describe('capture: fact', () => {
     const r = res.results[0]!;
     expect(r.id).toMatch(ID_RE.fact);
     expect(r.note).toBe('Memory/Profile.md');
-    expect(r.line).toBe(`- Allergic to penicillin ^${r.id}`);
+    expect(r.line).toBe(`- Allergic to penicillin ➕ 2026-09-26 10:00 ^${r.id}`);
   });
 
   it('saves a fact about a person, creating the note', async () => {
@@ -275,7 +275,7 @@ describe('capture: fact', () => {
     const r = res.results[0]!;
     expect(r.note).toBe('People/Alex.md');
     const text = await t.ctx.writer.read('People/Alex.md');
-    expect(text).toBe(`# Alex\n\n- Job hunting for PM roles ^${r.id}\n`);
+    expect(text).toBe(`# Alex\n\n- Job hunting for PM roles ➕ 2026-09-26 10:00 ^${r.id}\n`);
   });
 
   it('saves a topic fact with an expiry', async () => {
@@ -285,7 +285,58 @@ describe('capture: fact', () => {
     });
     const r = res.results[0]!;
     expect(r.note).toBe('Memory/Topics/Travel.md');
-    expect(r.line).toBe(`- Staying in Lisbon ⌛ 2026-10-15 ^${r.id}`);
+    expect(r.line).toBe(`- Staying in Lisbon ⌛ 2026-10-15 ➕ 2026-09-26 10:00 ^${r.id}`);
+  });
+});
+
+describe('capture: fact timestamp', () => {
+  it('writes the capture moment as ➕ in the topic, profile and person notes', async () => {
+    t = await makeTestContext();
+    const res = await capture(t.ctx, {
+      items: [
+        { kind: 'fact', text: 'Prefers aisle seats', topic: 'Travel' },
+        { kind: 'fact', text: 'Left-handed' },
+        { kind: 'fact', text: 'Plays cello', person: 'Alex' },
+      ],
+    });
+    expect(res.results.map((r) => r.status)).toEqual(['saved', 'saved', 'saved']);
+    const [topic, profile, person] = res.results;
+    expect(await t.ctx.writer.read('Memory/Topics/Travel.md')).toContain(
+      `- Prefers aisle seats ➕ 2026-09-26 10:00 ^${topic!.id}\n`,
+    );
+    expect(await t.ctx.writer.read('Memory/Profile.md')).toContain(
+      `- Left-handed ➕ 2026-09-26 10:00 ^${profile!.id}\n`,
+    );
+    expect(await t.ctx.writer.read('People/Alex.md')).toContain(
+      `- Plays cello ➕ 2026-09-26 10:00 ^${person!.id}\n`,
+    );
+  });
+
+  it('uses the vault time zone clock, so the stored time follows the clock', async () => {
+    t = await makeTestContext();
+    t.clock.set('2026-09-30T16:45:00Z'); // Wed 09:45 America/Los_Angeles
+    const res = await capture(t.ctx, { items: [{ kind: 'fact', text: 'Drinks oat milk' }] });
+    expect(res.results[0]!.line).toBe(
+      `- Drinks oat milk ➕ 2026-09-30 09:45 ^${res.results[0]!.id}`,
+    );
+  });
+
+  it('leaves tasks without ➕ and follow-ups with a date-only ➕', async () => {
+    t = await makeTestContext();
+    const res = await capture(t.ctx, {
+      items: [
+        { kind: 'task', text: 'Water plants' },
+        {
+          kind: 'follow_up',
+          text: 'resume draft',
+          person: 'Alex',
+          direction: 'waiting',
+        },
+      ],
+    });
+    expect(res.results[0]!.line).not.toContain('➕');
+    expect(res.results[1]!.line).toContain('➕ 2026-09-26 ^');
+    expect(res.results[1]!.line).not.toContain('10:00');
   });
 });
 

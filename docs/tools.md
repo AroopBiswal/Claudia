@@ -75,6 +75,7 @@ Output:
 - `refused`: matched a never-save rule or the sensitive-data guard; `reason` names the rule and keyword, e.g. `Matches your never-save rule "Nothing about my therapy sessions" (therapy).` Nothing is written.
 - `duplicate`: an open item of the same kind is nearly identical; `similar[0]` is the existing item. Nothing is written. Use `update` to change it.
 - Receipt display: today → `today 3:00pm`; within the next 6 days → `Tue 9:00am`; later → `Mon Oct 12, 9:00am`. Several reminders → `Reminders set: Tue 9:00am; Sun 7:00pm.`
+- Facts are saved with ➕ set to the capture moment (local `YYYY-MM-DD HH:mm`), e.g. `- Prefers aisle seats ➕ 2026-09-26 11:20 ^f3k8d`. Tasks, follow-ups and appointments are unchanged (follow-ups keep their date-only ➕).
 - Side effects: vault line, Log line, index update, calendar event for appointments.
 
 Annotations: `readOnlyHint: false`, `destructiveHint: false`, `idempotentHint: false`, `openWorldHint: false`.
@@ -100,7 +101,7 @@ Output:
       "text": "Call the dentist to reschedule",
       "note": "Tasks/To do.md",
       "reminder": "2026-09-29 09:00", "snoozed_until": null, "due": null, "appointment": null,
-      "repeat": null, "expires": null, "stale": false,
+      "repeat": null, "expires": null, "created": null, "stale": false,
       "tags": [], "people": [],
       "link": "obsidian://open?vault=Claudia&file=Tasks%2FTo%20do.md%23%5Et9x2k"
     }
@@ -115,7 +116,7 @@ Time-based views. Read-only.
 
 Input: `{ "view": "today" | "overdue" | "upcoming" | "follow_ups" | "recent" | "brief", "days": 7 }` (`days` for upcoming and recent, default 7, max 60).
 
-Output: `{ now, timezone, view, …sections }` where items use the recall result shape:
+Output: `{ now, timezone, view, …sections }` where items use the recall result shape (`created` is the ➕ value: a date, or date and time for facts, or null):
 - `today`: `appointments`, `reminders`, `due` (all for today, sorted by time).
 - `overdue`: `reminders` (effective reminder in the past, still open), `due` (📅 before today, still open).
 - `upcoming`: `appointments`, `reminders`, `due` for the next `days` days, excluding today.

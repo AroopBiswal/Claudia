@@ -602,6 +602,7 @@ export async function capture(ctx: ClaudiaContext, input: CaptureInput): Promise
     const id = nextId('fact');
     const fields: Partial<Record<FieldName, string>> = {};
     if (expires) fields.expires = expires;
+    fields.created = instantToLocal(now, zone);
     const line = renderItemLine({ task: false, description: text, fields, blockId: id });
 
     await ctx.writer.append(notePath, [line], { createWith });

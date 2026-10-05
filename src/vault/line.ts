@@ -51,10 +51,13 @@ const PRIORITY_EMOJIS = ['⏫', '🔼', '🔽', '🔺', '⏬'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
 const APPOINTMENT_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(-\d{2}:\d{2})?$/;
+// ➕ is a date, or a date and time on fact lines (the moment Claudia saved it).
+const CREATED_RE = /^\d{4}-\d{2}-\d{2}(?: (?:[01]\d|2[0-3]):[0-5]\d)?$/;
 
 const DATE_PREFIX_RE = /^\d{4}-\d{2}-\d{2}/;
 const DATETIME_PREFIX_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/;
 const APPOINTMENT_PREFIX_RE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(-\d{2}:\d{2})?/;
+const CREATED_PREFIX_RE = /^\d{4}-\d{2}-\d{2}(?: (?:[01]\d|2[0-3]):[0-5]\d)?/;
 
 const FREE_TEXT_FIELDS = new Set<FieldName>(['keywords', 'repeat']);
 const DATETIME_FIELDS = new Set<FieldName>(['reminder', 'snooze']);
@@ -84,6 +87,7 @@ export function isValidFieldValue(name: FieldName, value: string): boolean {
   if (FREE_TEXT_FIELDS.has(name)) return value.trim().length > 0;
   if (DATETIME_FIELDS.has(name)) return DATETIME_RE.test(value);
   if (name === 'appointment') return APPOINTMENT_RE.test(value);
+  if (name === 'created') return CREATED_RE.test(value);
   return DATE_RE.test(value);
 }
 
@@ -330,7 +334,9 @@ function analyzeLine(raw: string): LineAnalysis {
         ? DATETIME_PREFIX_RE
         : cand.name === 'appointment'
           ? APPOINTMENT_PREFIX_RE
-          : DATE_PREFIX_RE;
+          : cand.name === 'created'
+            ? CREATED_PREFIX_RE
+            : DATE_PREFIX_RE;
       const m = pattern.exec(candidateText);
       matchedValue = m ? m[0] : null;
     }

@@ -85,7 +85,7 @@ const README_MD = [
   '- 🔁 how it repeats',
   '- 📅 due date',
   '- ✅ date completed',
-  '- ➕ date created',
+  '- ➕ date created (facts carry the date and time Claudia saved them)',
   '- ⌛ when a fact expires',
   '- 🚫 keywords for a never-save rule (Rules.md only)',
   '',

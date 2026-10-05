@@ -58,6 +58,22 @@ describe('nudgeTimeFor', () => {
     expect(nudgeTimeFor(item, DEFAULT_SETTINGS, '2026-09-30')).toBe('2026-09-30 09:00');
   });
 
+  it('uses only the date part when ➕ carries a time', () => {
+    const dateOnly = followUp(
+      '- [ ] Waiting on [[Alex]]: resume draft #waiting ➕ 2026-09-20 ^t4m1q',
+    );
+    const withTime = followUp(
+      '- [ ] Waiting on [[Alex]]: resume draft #waiting ➕ 2026-09-20 23:45 ^t4m1q',
+    );
+    expect(withTime.created).toBe('2026-09-20 23:45');
+    for (const today of ['2026-09-24', '2026-09-25', '2026-09-29', '2026-09-30', '2026-10-15']) {
+      expect(nudgeTimeFor(withTime, DEFAULT_SETTINGS, today)).toBe(
+        nudgeTimeFor(dateOnly, DEFAULT_SETTINGS, today),
+      );
+    }
+    expect(nudgeTimeFor(withTime, DEFAULT_SETTINGS, '2026-09-25')).toBe('2026-09-25 09:00');
+  });
+
   it('honors a custom "Waiting-on nudge after" cadence', () => {
     const item = followUp('- [ ] Waiting on [[Alex]]: resume draft #waiting ➕ 2026-09-20 ^t4m1q');
     const settings = { ...DEFAULT_SETTINGS, waitingNudgeDays: 3 };

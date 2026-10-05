@@ -81,7 +81,7 @@ A field is an emoji token preceded by whitespace (or line start of the content),
 | ⌛ | fact expires | `YYYY-MM-DD` | Claudia |
 | 🚫 | rule keywords | comma-separated keywords or phrases | Claudia (Rules.md only) |
 | 🔁 | repeat | rule text, e.g. `every week on Sunday` | Obsidian Tasks |
-| ➕ | created | `YYYY-MM-DD` | Obsidian Tasks |
+| ➕ | created | `YYYY-MM-DD`, or `YYYY-MM-DD HH:mm` on fact lines (the moment Claudia saved the fact) | Obsidian Tasks (tasks, follow-ups), Claudia (facts) |
 | 🛫 | start | `YYYY-MM-DD` | Obsidian Tasks (preserved, unused) |
 | ⏳ | scheduled | `YYYY-MM-DD` | Obsidian Tasks (preserved, unused) |
 | 📅 | due | `YYYY-MM-DD` | Obsidian Tasks |
@@ -97,7 +97,7 @@ A field is an emoji token preceded by whitespace (or line start of the content),
 
 ```
 - [ ] <description> <#tags> ⏰ … 💤 … 🗓️ … 🔁 … ➕ … 📅 … ✅ … ^id
-- <fact text> ⌛ … ^id
+- <fact text> ⌛ … ➕ … ^id
 - <rule text> 🚫 … ^id
 ```
 
@@ -144,10 +144,11 @@ The nightly archive moves completed and cancelled lines whose ✅ or ❌ date is
 ```
 # Alex
 
-- Friend from college ^f1a9z
-- Job hunting for PM roles (as of 2026-09) ^f7k2c
-- Staying in Lisbon until mid October ⌛ 2026-10-15 ^f5r8e
+- Friend from college ➕ 2026-09-26 09:14 ^f1a9z
+- Job hunting for PM roles (as of 2026-09) ➕ 2026-09-26 09:20 ^f7k2c
+- Staying in Lisbon until mid October ⌛ 2026-10-15 ➕ 2026-09-26 09:31 ^f5r8e
 ```
+Every fact Claudia saves carries ➕ with the local date and time it was saved. Facts written by hand may omit it.
 Facts without a person or topic go to `Memory/Profile.md`. A fact whose ⌛ date has passed is **stale**: it stays in the note and is listed in the brief.
 
 ### Log/YYYY-MM-DD.md
@@ -241,7 +242,7 @@ Nothing else in owner notes is modified.
 
 - Every date and time in the vault is wall-clock time in the Settings time zone (default America/Los_Angeles). No offsets are stored.
 - A local time that does not exist (spring-forward gap) resolves to the first valid instant after the gap (02:30 becomes 03:30). An ambiguous local time (fall-back overlap) resolves to the earlier instant.
-- ✅, ❌ and ➕ are local dates.
+- ✅ and ❌ are local dates. ➕ is a local date, or a local date and time (`YYYY-MM-DD HH:mm`) on fact lines. Nudges use only the date part of ➕.
 
 ### Reminders
 - An open task fires at its **effective reminder**: the later of ⏰ and 💤. Done, cancelled and generated lines never fire.

@@ -25,6 +25,19 @@ describe('itemView', () => {
     expect(itemLine(item)).toBe('Call the dentist (⏰ 2026-09-29 09:00) [t9x2k]');
   });
 
+  it('exposes created: a datetime for facts, a date for follow-ups, null otherwise', () => {
+    const opts = { vaultName: 'Claudia', today: '2026-10-04' };
+    const fact = first('People/Alex.md', '# Alex\n\n- Plays cello ➕ 2026-10-04 14:32 ^f1a2b\n');
+    expect(itemView(fact, opts).created).toBe('2026-10-04 14:32');
+    const followUp = first(
+      'Tasks/Follow-ups.md',
+      '- [ ] Waiting on [[Alex]]: reply #waiting ➕ 2026-10-01 ^t1a1a\n',
+    );
+    expect(itemView(followUp, opts).created).toBe('2026-10-01');
+    const task = first('Tasks/To do.md', '- [ ] Water plants ^t1a1b\n');
+    expect(itemView(task, opts).created).toBeNull();
+  });
+
   it('marks expired facts stale and formats appointments', () => {
     const fact = first('People/Alex.md', '# Alex\n\n- In Lisbon ⌛ 2026-09-01 ^f5r8e\n');
     expect(itemView(fact, { vaultName: 'Claudia', today: '2026-09-26' }).stale).toBe(true);

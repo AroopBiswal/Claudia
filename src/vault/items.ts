@@ -154,7 +154,7 @@ export function extractItems(path: string, note: Note): VaultItem[] {
       snooze: null,
       appointment: null,
       due: null,
-      created: null,
+      created: parsed.fields.created ?? null,
       done: null,
       cancelled: null,
       repeat: null,

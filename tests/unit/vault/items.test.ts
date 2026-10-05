@@ -84,6 +84,31 @@ describe('extractItems: People/Alex.md', () => {
   });
 });
 
+describe('extractItems: fact ➕', () => {
+  it('exposes a datetime ➕ on facts and keeps the description clean', () => {
+    const note = parseNote(
+      '# Alex\n\n- Plays cello ➕ 2026-10-04 14:32 ^f1a2b\n- Likes jazz ^f1a2c\n',
+    );
+    const [a, b] = extractItems('People/Alex.md', note);
+    expect(a?.created).toBe('2026-10-04 14:32');
+    expect(a?.text).toBe('Plays cello');
+    expect(b?.created).toBeNull();
+  });
+
+  it('exposes ➕ on topic and profile facts', () => {
+    const topic = extractItems(
+      'Memory/Topics/Travel.md',
+      parseNote('# Travel\n\n- Likes aisle seats ➕ 2026-10-04 14:32 ^f1a2b\n'),
+    );
+    const profile = extractItems(
+      'Memory/Profile.md',
+      parseNote('# Profile\n\n- Left-handed ➕ 2026-10-04 08:05 ^f1a2c\n'),
+    );
+    expect(topic[0]?.created).toBe('2026-10-04 14:32');
+    expect(profile[0]?.created).toBe('2026-10-04 08:05');
+  });
+});
+
 describe('extractItems: Memory/Profile.md and Memory/Topics/Travel.md', () => {
   it('extracts facts with no people attribution', () => {
     const profile = itemsFor('Memory/Profile.md');

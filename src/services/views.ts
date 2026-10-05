@@ -14,6 +14,7 @@ export interface ItemView {
   appointment: string | null;
   repeat: string | null;
   expires: string | null;
+  created: string | null;
   stale: boolean;
   tags: string[];
   people: string[];
@@ -41,6 +42,7 @@ export function itemView(item: ViewableItem, opts: { vaultName: string; today: s
     appointment: formatAppointment(item.appointment),
     repeat: item.repeat,
     expires: item.expires,
+    created: item.created,
     stale: item.kind === 'fact' && item.expires !== null && item.expires < opts.today,
     tags: item.tags,
     people: item.people,

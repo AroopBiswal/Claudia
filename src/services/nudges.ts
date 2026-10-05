@@ -51,11 +51,13 @@ export function nudgeTimeFor(
   const n = settings.waitingNudgeDays;
   if (n <= 0) return null;
 
-  const elapsed = daysBetween(item.created, today);
+  // ➕ may carry a time ('YYYY-MM-DD HH:mm'); only the date matters here.
+  const createdDate = item.created.slice(0, 10);
+  const elapsed = daysBetween(createdDate, today);
   if (elapsed < n) return null;
 
   const occurrences = Math.floor(elapsed / n);
-  const nudgeDate = addDays(item.created, occurrences * n);
+  const nudgeDate = addDays(createdDate, occurrences * n);
   return `${nudgeDate} ${settings.nudgeTime}`;
 }
 
