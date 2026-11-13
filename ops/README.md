@@ -18,7 +18,7 @@ using the same flags as the ntfy Makefile's `cli-darwin-server` target.
 
 ### Scripts
 
-- **`ops/build-ntfy.sh`** — idempotent. Downloads and verifies (by SHA-256) a
+- **`ops/build-ntfy.sh`** — Downloads and verifies (by SHA-256) a
   Go toolchain into `~/.claudia/tools/go` if one isn't already installed at
   the required version, then downloads the `v2.28.0` ntfy source tarball and
   builds the server binary to `~/.claudia/ntfy/bin/ntfy` with
